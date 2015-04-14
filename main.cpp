@@ -10,44 +10,50 @@
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace std;
+using namespace boost;
 
 int main()
 {
-	string user = getlogin();	//gets the username and stores it in string user
-	char name[100];				//initialize emptry string to be used to get the host name
+	string user = getlogin();	//gets the user name and stores it in string user
+	char name[100];				//initialize empty string to be used to get the host name
 	gethostname(name, 100);		//gets the host's name and stores it in the char array variable name
 	
 	bool done = false;
 	string command;
 	char *token;
 	vector<char*> library;
-	vector<string> sc_cmd;
-	while(!done)
+	vector<string> sc_cmd;				//sc_cmd stands for semicolon_commands - this holds the commands in string form
+	while(!done)							//loop until user enters exit and the loop is terminated
 	{
 		cout << user << "@" << name << " $ ";	//output user name, @ symbol, the host name, followed by $
 							// output at this point should result in: [user]@[host]$
 		getline(cin, command);				//get the entire line of command from user
 		if(command == "exit")
 		{
-			done = true;
+			done = true;					//if the command they type in is initially exit
+							//then there is no need to continue traversing the program, simply end
 		}
 		else
 		{
 			char cmd[command.size()];
-			strcpy(cmd, command.c_str());
+			strcpy(cmd, command.c_str());		//make the inputted command into a c string so that we can parse
 			token = strtok(cmd, ";");
 			while(token != NULL)
 			{
-				library.push_back(token);
+				library.push_back(token);		//parse the string, looking for semicolons to split the commands
 				token = strtok(NULL, ";");
 			}
 			for(int i = 0; i < library.size(); ++i)
 			{
-				sc_cmd.push_back(string(library.at(i)));
+				sc_cmd.push_back(string(library.at(i)));	//turn the parsed semicolon commands into strings and add to vector
 			}
 			for(int i = 0; i < sc_cmd.size(); ++i)
 			{
-				cout << sc_cmd.at(i) << endl;
+				trim(sc_cmd.at(i));					//remove all the unnecessary white spaces around the string if inputted
+				if(sc_cmd.at(i) == "exit")
+				{
+					return 0;
+				}
 			}
 		}
 	}
