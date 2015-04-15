@@ -21,8 +21,8 @@ int main()
 	bool done = false;
 	string command;
 	char *token;
-	vector<char*> library;
 	vector<string> sc_cmd;				//sc_cmd stands for semicolon_commands - this holds the commands in string form
+	vector<string> copy;
 	while(!done)							//loop until user enters exit and the loop is terminated
 	{
 		cout << user << "@" << name << " $ ";	//output user name, @ symbol, the host name, followed by $
@@ -40,24 +40,19 @@ int main()
 			token = strtok(cmd, ";");
 			while(token != NULL)
 			{
-				library.push_back(token);		//parse the string, looking for semicolons to split the commands
+				sc_cmd.push_back(string(token));		//parse the string, looking for semicolons to split the commands
 				token = strtok(NULL, ";");
 			}
-			for(int i = 0; i < library.size(); ++i)
-			{
-				sc_cmd.push_back(string(library.at(i)));	//turn the parsed semicolon commands into strings and add to vector
-			}
-			library.clear();
 			for(int i = 0; i < sc_cmd.size(); ++i)
 			{
 				strcpy(cmd, (sc_cmd.at(i)).c_str());
 				token = strtok(cmd, "#");
-				library.push_back(token);
+				copy.push_back(string(token));
 			}
 			sc_cmd.clear();
-			for(int i = 0; i < library.size(); ++i)
+			for(int i = 0; i < copy.size(); ++i)
 			{
-				sc_cmd.push_back(string(library.at(i)));	
+				sc_cmd.push_back(copy.at(i));
 			}
 			for(int i = 0; i < sc_cmd.size(); ++i)
 			{
