@@ -10,7 +10,7 @@
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace std;
-using namespace boost;
+using namespace boost::algorithm;
 
 int main()
 {
@@ -22,7 +22,7 @@ int main()
 	string command;
 	char *token;
 	vector<string> sc_cmd;				//sc_cmd stands for semicolon_commands - this holds the commands in string form
-	vector<string> copy;
+	vector<string> copy;			//this will hold the new commands from sc_cmd without any comments for a short while
 	while(!done)							//loop until user enters exit and the loop is terminated
 	{
 		cout << user << "@" << name << " $ ";	//output user name, @ symbol, the host name, followed by $
@@ -46,24 +46,33 @@ int main()
 			for(int i = 0; i < sc_cmd.size(); ++i)
 			{
 				strcpy(cmd, (sc_cmd.at(i)).c_str());
-				token = strtok(cmd, "#");
-				copy.push_back(string(token));
+				token = strtok(cmd, "#");					//parse the string looking for the start of a comment
+				if(token != NULL)		//then only add the beginning part of the command and throw away everything after the #
+				{
+					if(string(token).find_first_not_of(' ') != std::string::npos) //if the parsed string is only white spaces
+					{															//then dont add it list of commands
+						copy.push_back(string(token));	
+					}
+				}
 			}
 			sc_cmd.clear();
 			for(int i = 0; i < copy.size(); ++i)
 			{
-				sc_cmd.push_back(copy.at(i));
+				sc_cmd.push_back(copy.at(i));			//move the new filtered commands into the proper vector
 			}
+			copy.clear();
+			cout << "Your commands are: " << endl;
 			for(int i = 0; i < sc_cmd.size(); ++i)
 			{
-				trim(sc_cmd.at(i));					//remove all the unnecessary white spaces around the string if inputted
-				cout << "Commands: " << sc_cmd.at(i) << endl;
-				if(sc_cmd.at(i) == "exit")
+				trim(sc_cmd.at(i));					//remove all the unnecessary white spaces around the string if in there
+				cout << sc_cmd.at(i) << endl;	
+				if(sc_cmd.at(i) == "exit")			//if the command is exit, then end the function
 				{
 					done = true;
 					return 0;
 				}
 			}
+			sc_cmd.clear();
 		}
 	}
 	return 0;
