@@ -50,7 +50,7 @@ int main()
 				if(token != NULL)		//then only add the beginning part of the command and throw away everything after the #
 				{
 					if(string(token).find_first_not_of(' ') != std::string::npos) //if the parsed string is only white spaces
-					{															//then dont add it list of commands
+					{									//then dont add it list of commands
 						copy.push_back(string(token));	
 					}
 				}
