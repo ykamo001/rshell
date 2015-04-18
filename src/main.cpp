@@ -116,8 +116,13 @@ int main()
 									{
 										if(-1 == execvp((copy.at(i)).c_str(), argv))
 										{
-											perror("There was an error with execvp(). ");
+											perror("There was an error with execvp(). ");	
+											_exit(1);
 										}
+									}
+									else
+									{
+										_exit(1);
 									}
 								}
 								else
@@ -141,15 +146,16 @@ int main()
 							}
 							copy.clear();
 						}									//end of and_cmd
-						if(trues == and_cmd.size())
+						if(trues != and_cmd.size())
 						{
 							fails++;
 						}
-						and_cmd.clear();
 					}
+					and_cmd.clear();
 				}						//end of or_cmd
 				or_cmd.clear();
 			}			//end of sc_cmd
+			sc_cmd.clear();
 		}
 	}
 	return 0;
