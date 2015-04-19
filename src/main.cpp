@@ -10,7 +10,7 @@
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace std;
-using namespace boost::algorithm;
+using namespace boost;
 
 int main()
 {
@@ -38,16 +38,7 @@ int main()
 		else
 		{
 			char* cmd = new char[command.size()];
-			//strcpy(cmd, command.c_str());		//make the inputted command into a c string so that we can parse
-			//token = strtok(cmd, "#");					//parse the string looking for the start of a comment
-			//if(token != NULL)		//then only add the beginning part of the command and throw away everything after the #
-			//{
-			//	if(string(token).find_first_not_of(' ') != std::string::npos) //if the parsed string is only white spaces
-			//	{									//then dont add it list of commands
-			//		copy.push_back(string(token));	
-			//	}
-			//}
-			unsigned int loc = command.find_first_of("#");
+			unsigned int loc = command.find_first_of("#");			//keep only everything before the first comment mark
 			command = command.substr(0, loc);
 			if(command.size() > 0)
 			{
@@ -161,7 +152,7 @@ int main()
 											return 0;
 										}
 									}
-								delete []argv;
+								delete []argv;			//make sure to delete the dynamically allocated memory
 								}
 								copy.clear();				//clear out the vector to be used again
 							}									//end of and_cmd
@@ -177,7 +168,7 @@ int main()
 				}			//end of sc_cmd
 			sc_cmd.clear();			//clear out the commands in the semicolon vector since we are done
 			}
-		delete []cmd;
+		delete []cmd;				//make sure to delete the dynamically allocated memory
 		}
 	}				//end of while(!done) loop
 	return 0;
