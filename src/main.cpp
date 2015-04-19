@@ -114,7 +114,7 @@ int main()
 								{
 									if(and_cmd.at(i) != "exit")
 									{
-										if(-1 == execvp((copy.at(i)).c_str(), argv))
+										if(-1 == execvp((copy.at(0)).c_str(), argv))
 										{
 											perror("There was an error with execvp(). ");	
 											_exit(1);
