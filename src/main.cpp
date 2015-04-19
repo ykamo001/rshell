@@ -23,8 +23,8 @@ int main()
 	char *token;
 	vector<string> sc_cmd;				//sc_cmd stands for semicolon_commands - this holds the commands in string form
 	vector<string> copy;			//this will hold the new commands from sc_cmd without any comments for a short while
-	vector<string> and_cmd;
-	vector<string> or_cmd;
+	vector<string> and_cmd;			//this will hold the string of single commands combined by &&
+	vector<string> or_cmd;			//this will hold the string of commands combined by ||
 	while(!done)							//loop until user enters exit and the loop is terminated
 	{
 		cout << user << "@" << name << " $ ";	//output user name, @ symbol, the host name, followed by $
@@ -63,46 +63,46 @@ int main()
 				sc_cmd.push_back(copy.at(i));			//move the new filtered commands into the proper vector
 			}
 			copy.clear();
-			for(int i = 0; i < sc_cmd.size(); ++i)
+			for(int i = 0; i < sc_cmd.size(); ++i)		//keep executing these commands regardless of result from previous command
 			{
 				trim(sc_cmd.at(i));					//remove all the unnecessary white spaces around the string if in there
 				strcpy(cmd, (sc_cmd.at(i)).c_str());
 				token = strtok(cmd, "||");
 				while(token != NULL)
 				{
-					or_cmd.push_back(string(token));
+					or_cmd.push_back(string(token));		//parse the string for || commands and split the code down to && commnds
 					token = strtok(NULL, "||");
 				}
 				int fails = 0;
-				for(int i = 0; i < or_cmd.size(); ++i)
+				for(int i = 0; i < or_cmd.size(); ++i)			//keep doing || commands as long as the last command failed
 				{
 					trim(or_cmd.at(i));
 					if(fails == i)
 					{
 						strcpy(cmd, (or_cmd.at(i)).c_str());
 						token = strtok(cmd, "&&");
-						while(token != NULL)
+						while(token != NULL)			//parse the string command for && and split the code down to single commands
 						{
 							and_cmd.push_back(string(token));
 							token = strtok(NULL, "&&");
 						}
 						int trues = 0;
-						for(int i = 0; i < and_cmd.size(); ++i)
+						for(int i = 0; i < and_cmd.size(); ++i)		//keep doing && commands as long as the last command succeeded
 						{
 							if(trues == i)
 							{
 								strcpy(cmd, (and_cmd.at(i)).c_str());
 								token = strtok(cmd, " ");
-								while(token != NULL)
+								while(token != NULL)			//break down the command into strings
 								{
 									copy.push_back(string(token));
 									token = strtok(NULL, " ");
 								}
-								char* argv[copy.size()+1];
+								char* argv[copy.size()+1];		//create an array of char pointers
 								for(int j = 0; j < copy.size(); ++j)
 								{
-									trim(copy.at(j));
-									argv[j] = const_cast<char*>((copy.at(j)).c_str()); 
+									trim(copy.at(j));		//add char pointers into an array of pointers
+									argv[j] = const_cast<char*>((copy.at(j)).c_str());	//this will allow us to use execvp 
 								}
 								argv[copy.size()] = 0;
 								int pid = fork();
@@ -112,15 +112,15 @@ int main()
 								}
 								else if(pid == 0)
 								{
-									if(and_cmd.at(i) != "exit")
+									if(and_cmd.at(i) != "exit")	//only move along to execvp if the command is not exit
 									{
 										if(-1 == execvp((copy.at(0)).c_str(), argv))
 										{
 											perror("There was an error with execvp(). ");	
-											_exit(1);
+											_exit(1);		//if the command failed, then kill the child process and exit
 										}
 									}
-									else
+									else		//if the command is to exit, dont do anything, simply kill the child process and exit
 									{
 										_exit(1);
 									}
@@ -133,30 +133,31 @@ int main()
 									{
 										perror("There was en error with wait(). ");
 									}
-									else if(status == 0)
+									else if(status == 0)		//if the last command was executed successfully, increase the counter
 									{
 										++trues;
 									}
-									if(and_cmd.at(i) == "exit")
+									if(and_cmd.at(i) == "exit")		//if the user entered the exit command, end the shell and program
 									{
 										done = true;
 										return 0;
 									}
 								}
 							}
-							copy.clear();
+							copy.clear();				//clear out the vector to be used again
 						}									//end of and_cmd
 						if(trues != and_cmd.size())
 						{
-							fails++;
+							fails++;			//if the amount of commands that were successfully executed is not the same as the
+												//number of commands executed, then increase the number of commands failed
 						}
 					}
-					and_cmd.clear();
+					and_cmd.clear();			//clear out the commands in and vector since we are done
 				}						//end of or_cmd
-				or_cmd.clear();
+				or_cmd.clear();			//clear out the commands in the or vector since we are done
 			}			//end of sc_cmd
-			sc_cmd.clear();
+			sc_cmd.clear();			//clear out the commands in the semicolon vector since we are done
 		}
-	}
+	}				//end of while(!done) loop
 	return 0;
 }
