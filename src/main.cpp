@@ -117,7 +117,7 @@ int main()
 									int pid = fork();
 									if(pid == -1)
 									{
-										perror("There was an error with fork(). ");
+										perror("There was an error with fork() ");
 									}
 									else if(pid == 0)
 									{
@@ -125,7 +125,7 @@ int main()
 										{
 											if(-1 == execvp((copy.at(0)).c_str(), argv))
 											{
-												perror("There was an error with execvp(). ");	
+												perror("There was an error with execvp() ");	
 												_exit(1);	//if the command failed, then kill the child process and exit
 											}
 										}
@@ -140,7 +140,7 @@ int main()
 										wait(&status);
 										if(status == -1)
 										{
-											perror("There was en error with wait(). ");
+											perror("There was en error with wait() ");
 										}
 										else if(status == 0)	//if the last command was executed successfully, increase the counter
 										{
