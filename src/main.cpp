@@ -148,7 +148,9 @@ int main()
 										}
 										if(and_cmd.at(i) == "exit")	//if the user entered the exit command, end the shell and program
 										{
-											done = true;
+											delete []argv;		//since we are done with the program early, we must delete
+											delete []cmd;		//dynamic memory from leaking out
+											done = true;	
 											return 0;
 										}
 									}
