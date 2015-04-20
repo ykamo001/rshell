@@ -11,13 +11,15 @@ Modifications will be implemented based on evaluations of effectiveness.
 
 ##Installing and Running
 To get Rshell and run it, please open up a terminal and run these commands:
->`git clone https://github.com/ykamo001/rshell.git`
+```
+git clone https://github.com/ykamo001/rshell.git
 
->`cd rshell/`
+cd rshell/
 
->`make`
+make
 
->`bin/rshell`
+bin/rshell
+```
 
 ##Uses
 1. To exit Rshell, simply enter in the command `exit` whenever you wish to exit.
@@ -49,5 +51,5 @@ To get Rshell and run it, please open up a terminal and run these commands:
 
 2. Rshell  does not support i/o command as such: `echo "Hello World" >> file.cpp`.
 
-3. After pressing `ctrl-z`,Rshell will stop properly; however, after returning to Rshell
+3. After pressing `ctrl-z`, Rshell will stop properly and be pushed to the background; however, after returning to Rshell
 by using `fg`, Rshell will not output a command line or prompt, but it is still running.
