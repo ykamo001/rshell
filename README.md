@@ -11,13 +11,10 @@ Modifications will be implemented based on evaluations of effectiveness.
 
 ##Installing and Running
 To get Rshell and run it, please open up a terminal and run these commands:
-```git clone https://github.com/ykamo001/rshell.git
-
-cd rshell/
-
-make
-
-bin/rshell```
+>`git clone https://github.com/ykamo001/rshell.git`
+>`cd rshell/`
+>`make`
+>`bin/rshell`
 
 ##Uses
 *To exit Rshell, simply enter in the command `exit` whenever you wish to exit.
