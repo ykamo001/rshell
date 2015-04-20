@@ -1,5 +1,5 @@
 #Rshell - A basic command shell
-Rshell, much like Bash, is a program that takes in the users input commands and executes them.
+Rshell, much like Bash, is a program that takes in the user input commands and executes them.
 In fact, Rshell is a more user-friendly version of Bash with some modifications and limitations.
 Please see the **Uses and Specifications** section first to understand how Rshell interprets commands
 from the user and how to use it effectively. Then please see the **Bugs, Limitations, and Errors** section
@@ -46,7 +46,19 @@ bin/rshell
 ##Bugs, Limitations, and Errors
 1. Rshell does not differentiate between `&&` and `&`, and between `||` and `|`.
 
-2. Rshell  does not support i/o command as such: `echo "Hello World" >> file.cpp`.
+2. Rshell  does not support i/o command such as `echo "Hello World" >> file.cpp` and will cause the program to terminate and crash.
 
 3. After pressing `ctrl-z`, Rshell will stop properly and be pushed to the background; however, after returning to Rshell
-by using `fg`, Rshell will not output a command line or prompt, but it is still running.
+by using `fg`, Rshell will not output a command line or prompt, but it is still running; press `enter` once to see prompt.
+
+4. If accidentally inserted more connectors, such as `&&&&&` or `||||||`, Rshell will interpret this as a user mistake and consider 
+them as `&&` and `||`, respectively.
+
+5. When using `echo`, if connectors are combined improperly with other connectors or symbols, such as: `echo hello &| echo world` or
+`echo hello &\ echo world` will cause the program to terminate and crash.
+
+6. You will be able to recursively call Rshell within Rshell, resulting in multiple Rshells running Rshells. Executing the `exit` command
+will simply make you exit the current Rshell you are running; therefore, if you ran Rshell, then ran Rshell again, and ran Rshell one more
+time, in order to exit Rshell completely, you would need to execute `exit`, followed by `exit`, now placing you in the initial Rshell you
+called, and finally executing `exit` one last time. This can lead to Rshell-ception and is not recommended, as you can easily lose track
+of which Rshell you are in. 
