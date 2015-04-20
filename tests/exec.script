@@ -1,0 +1,142 @@
+Script started on Sun 19 Apr 2015 08:40:42 PM PDT
+~
+ykamo001@hammer $ cd CS100/rshell/src/
+~/CS100/rshell/src
+ykamo001@hammer $ ./a.out
+ykamo001@hammer.cs.ucr.edu $ ls #testing single command
+a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ ls -a #testing single command with single fl fla   lag
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ ls 0al   -alR r #restin      tesint cinl    single command with multi  tiple flags
+total 52
+-rw------- 1 ykamo001 csmajs  6980 Apr 19 20:32 main.cpp
+-rwx------ 1 ykamo001 csmajs 35999 Apr 19 20:32 a.out
+drwx------ 5 ykamo001 csmajs  4096 Apr 19 20:27 ..
+drwx------ 2 ykamo001 csmajs  4096 Apr 19 20:32 .
+ykamo001@hammer.cs.ucr.edu $ ls -aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa #testing command with re  repetitive flags
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ ls 0a  -aaaaaaaaaaaaaaaaaaaaaaaaaaAA#####       #########aaaaaa testing co          ##testinc   g comment in middle of flag
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ pwd #t testing different command
+/home/csmajs/ykamo001/CS100/rshell/src
+ykamo001@hammer.cs.ucr.edu $ ls  touch test.cpp ; cp test.cpp test2.cpp ; ls -a #testing multiple different commands and ; connector =   - all shoud  l  ld execute c successfully 
+.  ..  a.out  main.cpp	test2.cpp  test.cpp
+ykamo001@hammer.cs.ucr.edu $ rm test.cpp && rm t test2.cpp && ls -a #  testing all     && connector, all should execute since                   uld execute 
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ #testing only comment
+ykamo001@hammer.cs.ucr.edu $ 
+ykamo001@hammer.cs.ucr.edu $ #tested blank       empy ty command^
+ykamo001@hammer.cs.ucr.edu $ sdsdsdsd || rmdir folder || cat file.cpp || ls -a #testing || op  connector    , ls -a should execute since the     they all fail before it
+There was an error with execvp() : No such file or directory
+rmdir: failed to remove `folder': No such file or directory
+cat: file.cpp: No such file or directory
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ mk    touch file  .cpp && mkdir folder &&    ; c cp file.cpp || ls  ls     file.c 2.cpp        2.cpp || exit ;   &&    ; rmdir file. 2.cpp ||        7 || ls -                  t file.cpp && rmdir file7 || ls -a #tsting mul         esting commands with mixed connectors
+rmdir: failed to remove `file7': No such file or directory
+.  ..  a.out  file2.cpp  folder  main.cpp
+ykamo001@hammer.cs.ucr.edu $ rmdir folder.c   && file2.cpp         rm file2.cpp
+ykamo001@hammer.cs.ucr.edu $ ls -a #lets see if w everything is how we started as
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ ./a.out #lets run Rshell withing  Rshell to see if      run some exit commands
+ykamo001@hammer.cs.ucr.edu $ ps # 
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+18435 pts/38   00:00:00 a.out
+18515 pts/38   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu $ #as wee  can seee      e that there are two Rshells running!!
+ykamo001@hammer.cs.ucr.edu $ eixt     c xit #lets see if the exit command is si  implemene ted properly. should only exit the Rshell we are in
+ykamo001@hammer.cs.ucr.edu $ ps 
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+18714 pts/38   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu $ #############ls -a ###### as you can see, we are back to a our original Rshell
+ykamo001@hammer.cs.ucr.edu $ ./a.out #lets run R Rshu ell again to see if exit can be executed within a c          within a middle of a command line
+ykamo001@hammer.cs.ucr.edu $ ps 
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+18883 pts/38   00:00:00 a.out
+18884 pts/38   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu $ ls -a && echo the next command i will exit the first     second Rshell && exit %%  && echo this wont output###    ###  the program should output ls -a, then echo the sentence, and then exit and not output anything else
+.  ..  a.out  main.cpp
+the next command will exit the second Rshell
+ykamo001@hammer.cs.ucr.edu $ ps #lets see if it eff   properly exited
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+19158 pts/38   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu $ no    now we see wh  that we dont have zombies                                 hat will happen if we enter garbage || into all   command locations || ls    echo it should reach here regardless
+There was an error with execvp() : No such file or directory
+There was an error with execvp() : No such file or directory
+it should reach here regardless
+ykamo001@hammer.cs.ucr.edu $ ,.a,    ./a.out #lets run Rshell again so that we can see if o other commands run properl  y 
+ykamo001@hammer.cs.ucr.edu $ ps
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+19494 pts/38   00:00:00 a.out
+19497 pts/38   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu $ ^Z
+[1]+  Stopped                 ./a.out
+~/CS100/rshell/src
+ykamo001@hammer $ fg
+./a.out
+
+ykamo001@hammer.cs.ucr.edu $ ps
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+19494 pts/38   00:00:00 a.out
+19506 pts/38   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu $ # exit #cr trl-z ex  stopped and put the ENTIRE program in the backgron und so the     bt oth Rshells are running, but a propper g pg rogram should b go back to the second Rshell and we should return to our origina  l Rshell
+ykamo001@hammer.cs.ucr.edu $ ps
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+19680 pts/38   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu $ echo hello && echo worl  d || exit #pgora    rogram should not exit
+hello
+world
+ykamo001@hammer.cs.ucr.edu $ sd    lets && enter && bad && commands && and && the && program && should && not && crash && at all || ee ven ; if ; we || do && all || of; this weird stufff ll  ;;;;;;;;;;;;;;; &&&&&&& \\\\\     ||||
+There was an error with execvp() : No such file or directory
+There was an error with execvp() : No such file or directory
+There was an error with execvp() : No such file or directory
+There was an error with execvp() : No such file or directory
+There was an error with execvp() : No such file or directory
+There was an error with execvp() : No such file or directory
+There was an error with execvp() : No such file or directory
+ykamo001@hammer.cs.ucr.edu $ &&&
+ykamo001@hammer.cs.ucr.edu $ 77
+There was an error with execvp() : No such file or directory
+ykamo001@hammer.cs.ucr.edu $ #lets       || #enter in just connectors but program should still keep going
+ykamo001@hammer.cs.ucr.edu $ ;;;;;;
+ykamo001@hammer.cs.ucr.edu $ ls -a # echo hello #####hello              o     this line will not be able to print as a comment is in the middle of the command
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ ls 0a      -a ########## exit 
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ #exit
+ykamo001@hammer.cs.ucr.edu $ &\
+There was an error with execvp() : No such file or directory
+ykamo001@hammer.cs.ucr.edu $ &\ |
+ykamo001@hammer.cs.ucr.edu $ /
+There was an error with execvp() : Permission denied
+ykamo001@hammer.cs.ucr.edu $ ?
+There was an error with execvp() : No such file or directory
+ykamo001@hammer.cs.ucr.edu $ 1234577
+There was an error with execvp() : No such file or directory
+ykamo001@hammer.cs.ucr.edu $ WENSFDKF
+There was an error with execvp() : No such file or directory
+ykamo001@hammer.cs.ucr.edu $ ps &&&    ls -a && exit #lets check to make sure everything it   s                                                # lets check to see if everything is okay before we are done testing out pgo  rogram
+  PID TTY          TIME CMD
+16713 pts/38   00:00:00 bash
+16766 pts/38   00:00:00 a.out
+20735 pts/38   00:00:00 ps
+.  ..  a.out  main.cpp
+ykamo001@hammer.cs.ucr.edu $ exit #looks good, e lets end thie s r test case
+~/CS100/rshell/src
+ykamo001@hammer $ exit
+exit
+
+Script done on Sun 19 Apr 2015 08:59:40 PM PDT
