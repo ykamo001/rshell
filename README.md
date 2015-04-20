@@ -18,7 +18,7 @@ make
 bin/rshell
 ```
 
-##Uses
+##Uses and Specifications
 1. To exit Rshell, simply enter in the command `exit` whenever you wish to exit.
 
 2. Supports the connectors `;` `&&` and `||`.
@@ -43,7 +43,7 @@ bin/rshell
 	If you must write comments, please do so at the very end of you entire command line, as such:
 	`ls -a && touch file.cpp ; cat file.cpp; exit #anything I type now will not be executed`
 
-##Bugs, Limitations, Errors
+##Bugs, Limitations, and Errors
 1. Rshell does not differentiate between `&&` and `&`, and between `||` and `|`.
 
 2. Rshell  does not support i/o command as such: `echo "Hello World" >> file.cpp`.
