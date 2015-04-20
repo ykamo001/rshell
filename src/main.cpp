@@ -111,6 +111,7 @@ int main()
 							unsigned int trues = 0;
 							for(unsigned int i = 0; i < and_cmd.size(); ++i) //keep doing && commands as long as the last command succeeded
 							{
+								trim(and_cmd.at(i));
 								if(trues == i)
 								{
 									strcpy(cmd, (and_cmd.at(i)).c_str());
@@ -153,7 +154,7 @@ int main()
 										wait(&status);
 										if(status == -1)
 										{
-											perror("There was en error with wait() ");
+											perror("There was an error with wait() ");
 										}
 										else if(status == 0)	//if the last command was executed successfully, increase the counter
 										{
@@ -163,6 +164,10 @@ int main()
 										{
 											delete []argv;		//since we are done with the program early, we must delete
 											delete []cmd;		//dynamic memory from leaking out
+											copy.clear();
+											and_cmd.clear();
+											or_cmd.clear();
+											sc_cmd.clear();
 											done = true;	
 											return 0;
 										}
