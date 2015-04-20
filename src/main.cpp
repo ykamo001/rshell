@@ -14,10 +14,17 @@ using namespace boost;
 
 int main()
 {
-	string user = getlogin();	//gets the user name and stores it in string user
+	char *user = getlogin();	//gets the user name
+	if(user == NULL)
+	{
+		perror("There was an error with getlogin() ");
+	}
 	char name[100];				//initialize empty string to be used to get the host name
-	gethostname(name, 100);		//gets the host's name and stores it in the char array variable name
-	
+	int check = gethostname(name, 100);		//gets the host's name and stores it in the char array variable name
+	if(check == -1)
+	{
+		perror("There was en error with gethostname() ");
+	}
 	bool done = false;
 	string command;
 	char *token;
@@ -27,8 +34,14 @@ int main()
 	vector<string> or_cmd;		//this will hold the string of commands combined by ||
 	while(!done)		//loop until user enters exit and the loop is terminated
 	{
-		cout << user << "@" << name << " $ ";	//output user name, @ symbol, the host name, followed by $
-							// output at this point should result in: [user]@[host]$
+		if((user != NULL) && (check == 0))
+		{
+			cout << user << "@" << name << " $ ";	//output user name, @ symbol, the host name, followed by $
+		}			// output at this point should result in: [user]@[host]$
+		else
+		{
+			cout << "$ ";
+		}
 		getline(cin, command);	//get the entire line of command from user
 		if(command == "exit")
 		{
