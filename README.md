@@ -13,11 +13,8 @@ Modifications will be implemented based on evaluations of effectiveness.
 To get Rshell and run it, please open up a terminal and run these commands:
 ```
 git clone https://github.com/ykamo001/rshell.git
-
 cd rshell/
-
 make
-
 bin/rshell
 ```
 
