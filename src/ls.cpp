@@ -12,6 +12,7 @@
 #include <fcntl.h> 
 #include <cstdlib>
 #include <errno.h>
+#include <dirent.h>
 
 using namespace std;
 using namespace boost;
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
 	errno = 0;
 	for(int i = 1; i < argc; ++i)
 	{
-		if(NULL = (currdir = opendir(argv[i])))
+		if(NULL == (currdir = opendir(argv[i])))
 		{
 			perror("There was an error with opendir(). ");
 			exit(1);
