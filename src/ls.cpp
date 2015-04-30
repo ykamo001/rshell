@@ -91,6 +91,46 @@ void getfiles(vector<string> &currfiles, char** argv, const int &loc)	//this fun
 	sort(currfiles.begin(), currfiles.end());
 }
 
+void outputnorm(vector<string> &display)
+{
+	int row = 0;
+	if(hasa)
+	{
+		for(unsigned int i = 0; i < display.size(); ++i)
+		{
+			if(row >= 5)
+			{
+				cout << endl;
+				row = 5;
+			}
+			else
+			{
+				row++;
+			}
+			cout << display.at(i) << "    ";
+		}
+	}
+	else
+	{
+		for(unsigned int i = 0; i < display.size(); ++i)
+		{
+			if(row >= 5)
+			{
+				cout << endl;
+				row = 5;
+			}
+			else
+			{
+				row++;
+			}
+			if(display.at(i).at(0) != '.')
+			{	
+				cout << display.at(i) << "    ";
+			}
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	vector<string> commands;
@@ -99,32 +139,35 @@ int main(int argc, char **argv)
 	vector<char> flags;
 	bool okay = true;
 	make_strings(argc, argv, commands);		//first change all inputs into strings
-	identify(commands, flags, directories, okay);
-	if(okay)
+	identify(commands, flags, directories, okay);		//organize and get all the info
+	
+	if(okay)	//if no errors in flag, proceed to output
 	{
-		cout << "The flags are: ";
-		for(unsigned int i = 0; i < flags.size(); ++i)
+		if(directories.size() > 0)
 		{
-			cout << flags.at(i) << " ";
-		}
-		cout << endl;
-		cout << "The directories are located at: ";
-		for(unsigned int i = 0; i < directories.size(); ++i)
-		{
-			cout << directories.at(i) << " ";
-		}
-		cout << endl;
-		for(unsigned int i = 0; i < directories.size(); ++i)
-		{
-			getfiles(dirfiles, argv, directories.at(i));
-			cout << commands.at(directories.at(i)-1) << ": " << endl;
-			for(unsigned int j = 0; j < dirfiles.size(); ++j)
+			cout << "The flags are: ";
+			for(unsigned int i = 0; i < flags.size(); ++i)
 			{
-				cout << dirfiles.at(j) << "    ";
+				cout << flags.at(i) << " ";
 			}
 			cout << endl;
-			dirfiles.clear();
+			cout << "The directories are located at: ";
+			for(unsigned int i = 0; i < directories.size(); ++i)
+			{
+				cout << directories.at(i) << " ";
+			}
+			cout << endl;
+			for(unsigned int i = 0; i < directories.size(); ++i)
+			{
+				getfiles(dirfiles, argv, directories.at(i));
+				cout << commands.at(directories.at(i)-1) << ": " << endl;
+				displaynorm(directories);
+				dirfiles.clear();
+			}
 		}
+		else
+		{
+			
 	}
 	else
 	{
