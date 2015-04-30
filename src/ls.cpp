@@ -17,33 +17,118 @@
 using namespace std;
 using namespace boost;
 
-int main(int argc, char **argv)
+void make_strings(int size, char** parse, vector<string> &give)	//converts char** argv into vector of strings for easier use
 {
+	for(int i = 1; i < size; ++i)
+	{
+		give.push_back(string(parse[i]));
+	}
+}
+
+void identify(const vector<string> &commands, vector<char> &flags, vector<int> &dirs , bool &cond)
+{
+	bool hasa = false;	//this function identifies where the directories are in the command line
+	bool hasl = false;	//determines what the flags are, and checks if they are all valid
+	bool hasR = false;
+	for(unsigned int i = 0; i < commands.size(); ++i)
+	{
+		if(commands.at(i).at(0) == '-')
+		{
+			for(unsigned int j = 1; j < commands.at(i).size(); ++j)
+			{
+				if((commands.at(i).at(j) == 'a') && !hasa) 
+				{
+					flags.push_back(commands.at(i).at(j));
+					hasa = true;
+				}
+				else if((commands.at(i).at(j) == 'l') && !hasl)
+				{
+					flags.push_back(commands.at(i).at(j));
+					hasl = true;
+				}
+				else if((commands.at(i).at(j) == 'R') && !hasR)
+				{
+					flags.push_back(commands.at(i).at(j));
+					hasR = true;
+				}
+				else if((commands.at(i).at(j) != 'R') && (commands.at(i).at(j) != 'a') && (commands.at(i).at(j) != 'l'))
+				{
+					cond = false;
+				}
+			}
+		}
+		else
+		{
+			dirs.push_back(i+1);
+		}
+	}
+}
+
+void getfiles(vector<string> &currfiles, char** argv, const int &loc)	//this function gets all the files and directories
+{				//from whatever directory it is pointed to, and stores them in a vector of strings
 	DIR *currdir;
 	struct dirent *files;
-	int check;
 	errno = 0;
-	for(int i = 1; i < argc; ++i)
+	if(NULL == (currdir = opendir(argv[loc])))
 	{
-		if(NULL == (currdir = opendir(argv[i])))
+		perror("There was an error with opendir(). ");
+		exit(1);
+	}
+	while(NULL != (files = readdir(currdir)))
+	{
+		currfiles.push_back(string(files->d_name));
+	}
+	if(errno != 0)
+	{
+		perror("There was an error with readdir(). ");
+		exit(1);
+	}
+	if(-1 == closedir(currdir))
+	{
+		perror("There was an error with closedir(). ");
+		exit(1);
+	}
+	sort(currfiles.begin(), currfiles.end());
+}
+
+int main(int argc, char **argv)
+{
+	vector<string> commands;
+	vector<int> directories;
+	vector<string> dirfiles;
+	vector<char> flags;
+	bool okay = true;
+	make_strings(argc, argv, commands);		//first change all inputs into strings
+	identify(commands, flags, directories, okay);
+	if(okay)
+	{
+		cout << "The flags are: ";
+		for(unsigned int i = 0; i < flags.size(); ++i)
 		{
-			perror("There was an error with opendir(). ");
-			exit(1);
+			cout << flags.at(i) << " ";
 		}
-		while(check == (files = readdir(currdir)))
+		cout << endl;
+		cout << "The directories are located at: ";
+		for(unsigned int i = 0; i < directories.size(); ++i)
 		{
-			cout << files->d_name << " ";
+			cout << directories.at(i) << " ";
 		}
-		if(errno != 0)
+		cout << endl;
+		for(unsigned int i = 0; i < directories.size(); ++i)
 		{
-			perror("There was an error with readdir(). ");
-			exit(1);
+			getfiles(dirfiles, argv, directories.at(i));
+			cout << commands.at(directories.at(i)-1) << ": " << endl;
+			for(unsigned int j = 0; j < dirfiles.size(); ++j)
+			{
+				cout << dirfiles.at(j) << "    ";
+			}
+			cout << endl;
+			dirfiles.clear();
 		}
-		if(-1 == closedir(currdir))
-		{
-			perror("There was an error with closedir(). ");
-			exit(1);
-		}
+	}
+	else
+	{
+		cout << "Error: flag not recognized or valid. " << endl;
 	}
 	return 0;
 }
