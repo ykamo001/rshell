@@ -17,12 +17,18 @@
 using namespace std;
 using namespace boost;
 
-bool hasa = false;	
-bool hasl = false;	
-bool hasR = false;
+//next three bools used for ease of access to flags
+bool hasa = false;	//holds flag for a	
+bool hasl = false;	//holds flag for l
+bool hasR = false;	//hold flag for R
 
-void make_strings(int size, char** parse, vector<string> &give)	//converts char** argv into vector of strings for easier use
-{
+bool compareNoCase(const string& s1, const string& s2)
+{		//takes care of capital letter comparisons
+	return strcasecmp( s1.c_str(), s2.c_str() ) <= 0;
+}
+
+void make_strings(int size, char** parse, vector<string> &give)
+{	//converts char** argv into vector of strings for easier use
 	for(int i = 1; i < size; ++i)
 	{
 		give.push_back(string(parse[i]));
@@ -86,25 +92,15 @@ void getfiles(vector<string> &currfiles, char** argv, const int &loc)	//this fun
 		perror("There was an error with closedir(). ");
 		exit(1);
 	}
-	sort(currfiles.begin(), currfiles.end());
+	sort(currfiles.begin(), currfiles.end(), compareNoCase);
 }
 
 void outputnorm(vector<string> &display)
-{
-	int row = 0;
+{	//outputs the files/directories based on a flag
 	if(hasa)
 	{
 		for(unsigned int i = 0; i < display.size(); ++i)
 		{
-			if(row >= 7)
-			{
-				cout << endl;
-				row = 0;
-			}
-			else
-			{
-				row++;
-			}
 			cout << display.at(i) << "  ";
 		}
 	}
@@ -112,15 +108,6 @@ void outputnorm(vector<string> &display)
 	{
 		for(unsigned int i = 0; i < display.size(); ++i)
 		{
-			if(row >= 7)
-			{
-				cout << endl;
-				row = 0;
-			}
-			else
-			{
-				row++;
-			}
 			if(display.at(i).at(0) != '.')
 			{	
 				cout << display.at(i) << "  ";
@@ -140,9 +127,9 @@ int main(int argc, char **argv)
 	identify(commands, directories, okay);		//organize and get all the info
 	if(okay)	//if no errors in flag, proceed to output
 	{
-		if(directories.size() > 0)
+		if(directories.size() > 0)	//if directories were specified, come here
 		{
-			if(!hasl && !hasR)
+			if(!hasl && !hasR)	//if no l or R flag, simple case, do this
 			{
 				for(unsigned int i = 0; i < directories.size(); ++i)
 				{
@@ -160,13 +147,11 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		else
+		else //if no directory was specified, implied current directory, manually pass in . directory
 		{
 			char *temp[1];
-			char root = '.';
-			char *hold = &root;
-			temp[0] = hold;
-			if(!hasl && !hasR)
+			temp[0] = new char('.');
+			if(!hasl && !hasR) //if no l or R flag, simple case, do this
 			{
 				getfiles(dirfiles, temp, 0);
 				outputnorm(dirfiles);
