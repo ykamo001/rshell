@@ -16,6 +16,9 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
+#include <set>
+#include <iomanip>
+#include <queue>
 
 using namespace std;
 using namespace boost;
@@ -71,12 +74,13 @@ void identify(const vector<string> &commands, vector<int> &dirs , bool &cond)
 	}
 }
 
-void getfiles(vector<string> &currfiles, char** argv, const unsigned int &loc)	//this function gets all the files and directories
+void getfiles(vector<string> &currfiles, char *temp)
+//this function gets all the files and directories
 {				//from whatever directory it is pointed to, and stores them in a vector of strings
 	DIR *currdir;
 	struct dirent *files;
 	errno = 0;
-	if(NULL == (currdir = opendir(argv[loc])))
+	if(NULL == (currdir = opendir(temp)))
 	{
 		perror("There was an error with opendir() ");
 		exit(1);
@@ -112,7 +116,7 @@ void outputnorm(vector<string> &display)
 {	//outputs the files/directories 
 	for(unsigned int i = 0; i < display.size(); ++i)
 	{
-		cout << display.at(i) << "  ";
+			cout << display.at(i) << "    ";
 	}
 	cout << endl;
 }
@@ -239,7 +243,7 @@ int main(int argc, char **argv)
 		{
 			for(unsigned int i = 0; i < directories.size(); ++i)
 			{
-				getfiles(dirfiles, argv, directories.at(i));
+				getfiles(dirfiles, argv[directories.at(i)]);
 				if(directories.size() > 1)
 				{
 					cout << commands.at(directories.at(i)-1) << ": " << endl;
@@ -261,20 +265,19 @@ int main(int argc, char **argv)
 		}
 		else //if no directory was specified, implied current directory, manually pass in . directory
 		{
-			char *temp[1];
-			temp[0] = new char('.');
-			getfiles(dirfiles, temp, 0);
+			char *temp[1] = {new char('.')}; 
+			vector<string> quick;
+			quick.push_back(".");
+			getfiles(dirfiles, temp[0]);
 			if(!hasl && !hasR) //if no l or R flag, simple case, do this
 			{
 				outputnorm(dirfiles);
 			}
 			else if(hasl && !hasR)
 			{
-				vector<string> quick;
-				quick.push_back(".");
 				outputl(dirfiles, quick, 0);
 			}
-			delete temp[0]; 
+			delete temp[0];
 		}
 	}
 	else
