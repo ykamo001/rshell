@@ -41,8 +41,9 @@ void make_strings(int size, char** parse, vector<string> &give)
 	}
 }
 
-void identify(const vector<string> &commands, vector<int> &dirs , bool &cond)
+void identify(vector<string> &commands, bool &cond)
 {
+	vector<string> replace;
 	for(unsigned int i = 0; i < commands.size(); ++i)
 	{
 		if(commands.at(i).at(0) == '-')
@@ -69,9 +70,10 @@ void identify(const vector<string> &commands, vector<int> &dirs , bool &cond)
 		}	//this function identifies where the directories are in the command line
 		else
 		{
-			dirs.push_back(i+1);
+			replace.push_back(commands.at(i));
 		}	//determines what the flags are, and checks if they are all valid
 	}
+	commands = replace;
 }
 
 void getfiles(vector<string> &currfiles, char *temp)
@@ -116,7 +118,7 @@ void outputnorm(vector<string> &display)
 {	//outputs the files/directories 
 	for(unsigned int i = 0; i < display.size(); ++i)
 	{
-			cout << display.at(i) << "    ";
+			cout << display.at(i) << "  ";
 	}
 	cout << endl;
 }
@@ -229,24 +231,31 @@ void outputl(vector<string> &files, string &pname)
 	}
 }
 
+/*void todoR(vector<string> paths, vector<string> files)
+{
+	vector<string> output;
+	if(!hasl)
+	{
+	getfiles(output, 
+
+}*/
 int main(int argc, char **argv)
 {
 	vector<string> commands;
-	vector<int> directories;
 	vector<string> dirfiles;
 	bool okay = true;
 	make_strings(argc, argv, commands);		//first change all inputs into strings
-	identify(commands, directories, okay);		//organize and get all the info
+	identify(commands, okay);		//organize and get all the info
 	if(okay)	//if no errors in flag, proceed to output
 	{
-		if(directories.size() > 0)	//if directories were specified, come here
+		if(commands.size() > 0)	//if directories were specified, come here
 		{
-			for(unsigned int i = 0; i < directories.size(); ++i)
+			for(unsigned int i = 0; i < commands.size(); ++i)
 			{
-				getfiles(dirfiles, argv[directories.at(i)]);
-				if(directories.size() > 1)
+				getfiles(dirfiles, const_cast<char*>(commands.at(i).c_str()));
+				if(commands.size() > 1)
 				{
-					cout << commands.at(directories.at(i)-1) << ": " << endl;
+					cout << commands.at(i) << ": " << endl;
 				}
 				if(!hasl && !hasR)	//if no l or R flag, simple case, do this
 				{
@@ -254,9 +263,9 @@ int main(int argc, char **argv)
 				}
 				else if(hasl && !hasR)
 				{
-					outputl(dirfiles, commands.at(directories.at(i)-1));
+					outputl(dirfiles, commands.at(i));
 				}
-				if(directories.size()-1 > i)
+				if(commands.size()-1 > i)
 				{
 					cout << endl;
 				}
