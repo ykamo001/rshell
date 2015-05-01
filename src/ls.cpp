@@ -17,6 +17,10 @@
 using namespace std;
 using namespace boost;
 
+bool hasa = false;	
+bool hasl = false;	
+bool hasR = false;
+
 void make_strings(int size, char** parse, vector<string> &give)	//converts char** argv into vector of strings for easier use
 {
 	for(int i = 1; i < size; ++i)
@@ -25,11 +29,8 @@ void make_strings(int size, char** parse, vector<string> &give)	//converts char*
 	}
 }
 
-void identify(const vector<string> &commands, vector<char> &flags, vector<int> &dirs , bool &cond)
+void identify(const vector<string> &commands, vector<int> &dirs , bool &cond)
 {
-	bool hasa = false;	//this function identifies where the directories are in the command line
-	bool hasl = false;	//determines what the flags are, and checks if they are all valid
-	bool hasR = false;
 	for(unsigned int i = 0; i < commands.size(); ++i)
 	{
 		if(commands.at(i).at(0) == '-')
@@ -38,17 +39,14 @@ void identify(const vector<string> &commands, vector<char> &flags, vector<int> &
 			{
 				if((commands.at(i).at(j) == 'a') && !hasa) 
 				{
-					flags.push_back(commands.at(i).at(j));
 					hasa = true;
 				}
 				else if((commands.at(i).at(j) == 'l') && !hasl)
 				{
-					flags.push_back(commands.at(i).at(j));
 					hasl = true;
 				}
 				else if((commands.at(i).at(j) == 'R') && !hasR)
 				{
-					flags.push_back(commands.at(i).at(j));
 					hasR = true;
 				}
 				else if((commands.at(i).at(j) != 'R') && (commands.at(i).at(j) != 'a') && (commands.at(i).at(j) != 'l'))
@@ -56,11 +54,11 @@ void identify(const vector<string> &commands, vector<char> &flags, vector<int> &
 					cond = false;
 				}
 			}
-		}
+		}	//this function identifies where the directories are in the command line
 		else
 		{
 			dirs.push_back(i+1);
-		}
+		}	//determines what the flags are, and checks if they are all valid
 	}
 }
 
@@ -98,26 +96,26 @@ void outputnorm(vector<string> &display)
 	{
 		for(unsigned int i = 0; i < display.size(); ++i)
 		{
-			if(row >= 5)
+			if(row >= 7)
 			{
 				cout << endl;
-				row = 5;
+				row = 0;
 			}
 			else
 			{
 				row++;
 			}
-			cout << display.at(i) << "    ";
+			cout << display.at(i) << "  ";
 		}
 	}
 	else
 	{
 		for(unsigned int i = 0; i < display.size(); ++i)
 		{
-			if(row >= 5)
+			if(row >= 7)
 			{
 				cout << endl;
-				row = 5;
+				row = 0;
 			}
 			else
 			{
@@ -125,10 +123,11 @@ void outputnorm(vector<string> &display)
 			}
 			if(display.at(i).at(0) != '.')
 			{	
-				cout << display.at(i) << "    ";
+				cout << display.at(i) << "  ";
 			}
 		}
 	}
+	cout << endl;
 }
 
 int main(int argc, char **argv)
@@ -136,38 +135,43 @@ int main(int argc, char **argv)
 	vector<string> commands;
 	vector<int> directories;
 	vector<string> dirfiles;
-	vector<char> flags;
 	bool okay = true;
 	make_strings(argc, argv, commands);		//first change all inputs into strings
-	identify(commands, flags, directories, okay);		//organize and get all the info
-	
+	identify(commands, directories, okay);		//organize and get all the info
 	if(okay)	//if no errors in flag, proceed to output
 	{
 		if(directories.size() > 0)
 		{
-			cout << "The flags are: ";
-			for(unsigned int i = 0; i < flags.size(); ++i)
+			if(!hasl && !hasR)
 			{
-				cout << flags.at(i) << " ";
-			}
-			cout << endl;
-			cout << "The directories are located at: ";
-			for(unsigned int i = 0; i < directories.size(); ++i)
-			{
-				cout << directories.at(i) << " ";
-			}
-			cout << endl;
-			for(unsigned int i = 0; i < directories.size(); ++i)
-			{
-				getfiles(dirfiles, argv, directories.at(i));
-				cout << commands.at(directories.at(i)-1) << ": " << endl;
-				displaynorm(directories);
-				dirfiles.clear();
+				for(unsigned int i = 0; i < directories.size(); ++i)
+				{
+					getfiles(dirfiles, argv, directories.at(i));
+					if(directories.size() > 1)
+					{
+						cout << commands.at(directories.at(i)-1) << ": " << endl;
+					}
+					outputnorm(dirfiles);
+					if(i < directories.size()-1)
+					{
+						cout << endl;
+					}
+					dirfiles.clear();
+				}
 			}
 		}
 		else
 		{
-			
+			char *temp[1];
+			char root = '.';
+			char *hold = &root;
+			temp[0] = hold;
+			if(!hasl && !hasR)
+			{
+				getfiles(dirfiles, temp, 0);
+				outputnorm(dirfiles);
+			}
+		}
 	}
 	else
 	{
