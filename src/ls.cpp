@@ -83,7 +83,17 @@ void getfiles(vector<string> &currfiles, char** argv, const unsigned int &loc)	/
 	}
 	while(NULL != (files = readdir(currdir)))
 	{
-		currfiles.push_back(string(files->d_name));
+		if(hasa)
+		{
+			currfiles.push_back(string(files->d_name));
+		}
+		else
+		{
+			if(string(files->d_name).at(0) != '.')
+			{
+				currfiles.push_back(string(files->d_name));
+			}
+		}
 	}
 	if(errno != 0)
 	{
@@ -99,38 +109,14 @@ void getfiles(vector<string> &currfiles, char** argv, const unsigned int &loc)	/
 }
 
 void outputnorm(vector<string> &display)
-{	//outputs the files/directories based on a flag
-	if(hasa)
+{	//outputs the files/directories 
+	for(unsigned int i = 0; i < display.size(); ++i)
 	{
-		for(unsigned int i = 0; i < display.size(); ++i)
-		{
-			cout << display.at(i) << "  ";
-		}
-	}
-	else
-	{
-		for(unsigned int i = 0; i < display.size(); ++i)
-		{
-			if(display.at(i).at(0) != '.')
-			{	
-				cout << display.at(i) << "  ";
-			}
-		}
+		cout << display.at(i) << "  ";
 	}
 	cout << endl;
 }
 
-void withouthidden(const vector<string> &take, vector<string> &give)
-{			//replaces the vector of strings without the hidden files
-	for(unsigned int i = 0; i < take.size(); ++i)
-	{
-		if(take.at(i).at(0) != '.')
-		{
-			give.push_back(take.at(i));
-		}
-	}
-	sort(give.begin(), give.end(), compareNoCase);
-}
 void getpath(const vector<string> &take, vector<string> &give, vector<string> &org, unsigned int place) 
 {		//gets you the absolute path
 	for(unsigned int i = 0; i < take.size(); ++i)
@@ -258,28 +244,17 @@ int main(int argc, char **argv)
 				{
 					cout << commands.at(directories.at(i)-1) << ": " << endl;
 				}
-				
 				if(!hasl && !hasR)	//if no l or R flag, simple case, do this
 				{
 					outputnorm(dirfiles);
 				}
 				else if(hasl && !hasR)
 				{
-					if(hasa)
-					{
-						outputl(dirfiles, commands, directories.at(i)-1);
-					}
-					else
-					{
-						vector<string> temp;
-						withouthidden(dirfiles, temp);
-						vector<string> look;
-						outputl(temp, commands, directories.at(i)-1);
-					}
+					outputl(dirfiles, commands, directories.at(i)-1);
 				}
-				if(directories.size() > 1)
+				if(directories.size()-1 > i)
 				{
-					cout << commands.at(directories.at(i)-1) << ": " << endl;
+					cout << endl;
 				}
 				dirfiles.clear();
 			}
@@ -297,16 +272,7 @@ int main(int argc, char **argv)
 			{
 				vector<string> quick;
 				quick.push_back(".");
-				if(hasa)
-				{
-					outputl(dirfiles, quick, 0);
-				}
-				else
-				{
-					vector<string> temp;
-					withouthidden(dirfiles, temp);
-					outputl(temp, quick, 0);
-				}
+				outputl(dirfiles, quick, 0);
 			}
 			delete temp[0]; 
 		}
