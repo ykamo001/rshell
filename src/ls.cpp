@@ -157,6 +157,20 @@ void outputl(vector<string> &files, vector<string> &org, unsigned int place)
 	struct stat status;
 	vector<string> path;
 	getpath(files, path, org, place);
+	int total = 0;
+	for(unsigned int i = 0; i < path.size(); ++i)
+	{
+		if(-1 == (stat(path.at(i).c_str(), &status)))
+		{
+			perror("There was an error with stat() ");
+			exit(1);
+		}
+		else
+		{
+			total += status.st_blocks;
+		}
+	}
+	cout << "Total: " << total/2 << endl;
 	for(unsigned int i = 0; i < path.size(); ++i)
 	{
 		if(-1 == (stat(path.at(i).c_str(), &status)))
