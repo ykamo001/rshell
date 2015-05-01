@@ -121,7 +121,7 @@ void outputnorm(vector<string> &display)
 	cout << endl;
 }
 
-void getpath(const vector<string> &take, vector<string> &give, vector<string> &org, unsigned int place) 
+void getpath(const vector<string> &take, vector<string> &give, string &org) 
 {		//gets you the absolute path
 	for(unsigned int i = 0; i < take.size(); ++i)
 	{
@@ -132,7 +132,7 @@ void getpath(const vector<string> &take, vector<string> &give, vector<string> &o
 			exit(1);
 		}
 		strcat(ptr, "/");
-		strcat(ptr, org.at(place).c_str());
+		strcat(ptr, org.c_str());
 		strcat(ptr, "/");
 		strcat(ptr, take.at(i).c_str());
 		give.push_back(string(ptr));
@@ -140,13 +140,13 @@ void getpath(const vector<string> &take, vector<string> &give, vector<string> &o
 	}
 }
 
-void outputl(vector<string> &files, vector<string> &org, unsigned int place)
+void outputl(vector<string> &files, string &pname)
 {
 	struct passwd *userid;
 	struct group *groupid;
 	struct stat status;
 	vector<string> path;
-	getpath(files, path, org, place);
+	getpath(files, path, pname);
 	int total = 0;
 	for(unsigned int i = 0; i < path.size(); ++i)
 	{
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 				}
 				else if(hasl && !hasR)
 				{
-					outputl(dirfiles, commands, directories.at(i)-1);
+					outputl(dirfiles, commands.at(directories.at(i)-1));
 				}
 				if(directories.size()-1 > i)
 				{
@@ -275,7 +275,7 @@ int main(int argc, char **argv)
 			}
 			else if(hasl && !hasR)
 			{
-				outputl(dirfiles, quick, 0);
+				outputl(dirfiles, quick.at(0));
 			}
 			delete temp[0];
 		}
