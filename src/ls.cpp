@@ -71,7 +71,7 @@ void identify(const vector<string> &commands, vector<int> &dirs , bool &cond)
 	}
 }
 
-void getfiles(vector<string> &currfiles, char** argv, const int &loc)	//this function gets all the files and directories
+void getfiles(vector<string> &currfiles, char** argv, const unsigned int &loc)	//this function gets all the files and directories
 {				//from whatever directory it is pointed to, and stores them in a vector of strings
 	DIR *currdir;
 	struct dirent *files;
@@ -121,7 +121,7 @@ void outputnorm(vector<string> &display)
 }
 
 void withouthidden(const vector<string> &take, vector<string> &give)
-{
+{			//replaces the vector of strings without the hidden files
 	for(unsigned int i = 0; i < take.size(); ++i)
 	{
 		if(take.at(i).at(0) != '.')
@@ -131,15 +131,35 @@ void withouthidden(const vector<string> &take, vector<string> &give)
 	}
 	sort(give.begin(), give.end(), compareNoCase);
 }
+void getpath(const vector<string> &take, vector<string> &give, vector<string> &org, unsigned int place) 
+{		//gets you the absolute path
+	for(unsigned int i = 0; i < take.size(); ++i)
+	{
+		char *ptr = new char[1024];
+		if(NULL == (getcwd(ptr, 1024)))
+		{
+			perror("There was an error with getcwd() ");
+			exit(1);
+		}
+		strcat(ptr, "/");
+		strcat(ptr, org.at(place).c_str());
+		strcat(ptr, "/");
+		strcat(ptr, take.at(i).c_str());
+		give.push_back(string(ptr));
+		delete []ptr;
+	}
+}
 
-void outputl(vector<string> &files)
+void outputl(vector<string> &files, vector<string> &org, unsigned int place)
 {
 	struct passwd *userid;
 	struct group *groupid;
-	struct status;
-	for(unsigned int i = 0; i < files.size(); ++i)
+	struct stat status;
+	vector<string> path;
+	getpath(files, path, org, place);
+	for(unsigned int i = 0; i < path.size(); ++i)
 	{
-		if(-1 == (stat(files.at(i).c_str(), &status)))
+		if(-1 == (stat(path.at(i).c_str(), &status)))
 		{
 			perror("There was an error with stat() ");
 			exit(1);
@@ -150,7 +170,7 @@ void outputl(vector<string> &files)
 			{
 				cout << 'd';
 			}
-			else if(S_IFLNK & status.st_mode)
+			else if(S_ISLNK(status.st_mode))
 			{
 				cout << 'l';
 			}
@@ -186,9 +206,9 @@ void outputl(vector<string> &files)
 			{
 				cout << groupid->gr_name << ' ';
 			}
-			cout << status.st_blocks << ' ';
+			cout << status.st_size << ' ';
 			struct tm *tm;
-			char timebuf[20];
+			char timebuf[15];
 			if(NULL == (tm = localtime(&(status.st_mtime))))
 			{
 				perror("There was an error with localtime() ");
@@ -196,11 +216,12 @@ void outputl(vector<string> &files)
 			}
 			else
 			{
-				strftime(timebuf, 20, "%b %d %H:%M", tm);
+				strftime(timebuf, 15, "%b %d %H:%M", tm);
 				cout << timebuf << ' ';
 			}
 			cout << files.at(i);
 		}
+		cout << endl;
 	}
 }
 
@@ -232,13 +253,14 @@ int main(int argc, char **argv)
 				{
 					if(hasa)
 					{
-						outputl(dirfiles);
+						outputl(dirfiles, commands, directories.at(i)-1);
 					}
 					else
 					{
 						vector<string> temp;
 						withouthidden(dirfiles, temp);
-						outputl(temp);
+						vector<string> look;
+						outputl(temp, commands, directories.at(i)-1);
 					}
 				}
 				if(directories.size() > 1)
@@ -259,17 +281,20 @@ int main(int argc, char **argv)
 			}
 			else if(hasl && !hasR)
 			{
+				vector<string> quick;
+				quick.push_back(".");
 				if(hasa)
 				{
-					outputl(dirfiles);
+					outputl(dirfiles, quick, 0);
 				}
 				else
 				{
 					vector<string> temp;
 					withouthidden(dirfiles, temp);
-					outputl(temp);
+					outputl(temp, quick, 0);
 				}
 			}
+			delete temp[0]; 
 		}
 	}
 	else
