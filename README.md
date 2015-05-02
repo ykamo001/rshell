@@ -69,7 +69,7 @@ of which Rshell you are in.
 `do_ypcall: clnt_call: RPC: Unable to send; errno = Operation not permitted` to randomly appear. Program will still run and output
 everything as expected, except this, too, shall be there.
 
-8. ls cannot output the files, directories, executables, and hidden files with specific colors.
+8. `ls` cannot output the files, directories, executables, and hidden files with specific colors.
 
 9. If any error is occurred with any directory or file, `ls` will terminate and output a specific error message indicating where things
 went wrong.
