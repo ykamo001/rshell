@@ -44,6 +44,7 @@ bin/rshell
 	`ls -a && touch file.cpp ; cat file.cpp; exit #anything I type now will not be executed`
 
 ##Bugs, Limitations, and Errors
+###Rshell
 1. Rshell does not differentiate between `&&` and `&`, and between `||` and `|`.
 
 2. Rshell  does not support i/o command such as `echo "Hello World" >> file.cpp` and will cause the program to terminate and crash.
@@ -61,4 +62,17 @@ them as `&&` and `||`, respectively.
 will simply make you exit the current Rshell you are running; therefore, if you ran Rshell, then ran Rshell again, and ran Rshell one more
 time, in order to exit Rshell completely, you would need to execute `exit`, followed by `exit`, now placing you in the initial Rshell you
 called, and finally executing `exit` one last time. This can lead to Rshell-ception and is not recommended, as you can easily lose track
-of which Rshell you are in. 
+of which Rshell you are in.
+
+###ls
+7. Running `ls` with the `-l` and/or `R` flag may cause unexpected output of 
+`do_ypcall: clnt_call: RPC: Unable to send; errno = Operation not permitted` to randomly appear. Program will still run and output
+everything as expected, except this, too, shall be there.
+
+8. ls cannot output the files, directories, executables, and hidden files with specific colors.
+
+9. If any error is occurred with any directory or file, `ls` will terminate and output a specific error message indicating where things
+went wrong.
+
+10. If there is a soft link to another file, when running `ls -l` there will be no indication of which file it points to, i.e. 
+you will not see the output of `-> filename`.
