@@ -124,14 +124,32 @@ void getfiles(vector<string> &currfiles, char *temp)
 
 void outputnorm(vector<string> &display)
 {	//outputs the files/directories 
+	unsigned int width = 0;
 	for(unsigned int i = 0; i < display.size(); ++i)
 	{
-		cout << display.at(i) << "  ";
-		if(i == display.size() - 1)
+		if(display.at(i).size() > width)
 		{
-			cout << endl;
+			width = display.at(i).size();
 		}
 	}
+	unsigned int total = 0;
+	for(unsigned int i = 0; i < display.size(); ++i)
+	{
+		total += width;
+		if(total <= 80)
+		{
+			cout.width(width);
+			cout << left <<  display.at(i) << "   ";
+		}
+		else
+		{
+			cout << endl;
+			cout.width(width);
+			cout << left << display.at(i) << "   ";
+			total = 0;
+		}
+	}
+	cout << endl;
 }
 
 void getpath(const vector<string> &take, vector<string> &give, string &org, string &absname) 
@@ -365,7 +383,7 @@ int main(int argc, char **argv)
 				}
 				doR(dirfiles, commands.at(i), absname);
 			}
-			if(commands.size()-1 > i)
+			if(i < (commands.size() - 1))
 			{
 				cout << endl;
 			}
