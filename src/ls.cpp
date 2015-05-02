@@ -19,6 +19,7 @@
 #include <set>
 #include <iomanip>
 #include <queue>
+#include <stack>
 
 using namespace std;
 using namespace boost;
@@ -123,32 +124,39 @@ void outputnorm(vector<string> &display)
 	cout << endl;
 }
 
-void getpath(const vector<string> &take, vector<string> &give, string &org) 
-{		//gets you the absolute path
+void getpath(const vector<string> &take, vector<string> &give, string &org, string &absname) 
+{		
+	string temp = absname;
 	for(unsigned int i = 0; i < take.size(); ++i)
 	{
-		char *ptr = new char[1024];
-		if(NULL == (getcwd(ptr, 1024)))
-		{
-			perror("There was an error with getcwd() ");
-			exit(1);
-		}
-		strcat(ptr, "/");
-		strcat(ptr, org.c_str());
-		strcat(ptr, "/");
-		strcat(ptr, take.at(i).c_str());
-		give.push_back(string(ptr));
-		delete []ptr;
+		absname.append(org);
+		absname.append("/");
+		absname.append(take.at(i));
+		give.push_back(absname);
+		absname = temp;
 	}
 }
 
-void outputl(vector<string> &files, string &pname)
+void getabsolName(string &name)
+{
+	char *ptr = new char[1024];
+	if(NULL == (getcwd(ptr, 1024)))
+	{
+		perror("There was an error with getcwd() ");
+		exit(1);
+	}
+	strcat(ptr, "/");
+	name = string(ptr);
+	delete []ptr;
+}
+
+void outputl(vector<string> &files, string &pname, string &absname)
 {
 	struct passwd *userid;
 	struct group *groupid;
 	struct stat status;
 	vector<string> path;
-	getpath(files, path, pname);
+	getpath(files, path, pname, absname);
 	int total = 0;
 	for(unsigned int i = 0; i < path.size(); ++i)
 	{
@@ -231,16 +239,44 @@ void outputl(vector<string> &files, string &pname)
 	}
 }
 
-/*void todoR(vector<string> paths, vector<string> files)
+void doR(vector<string> files, string parent, string absname)
 {
-	vector<string> output;
-	if(!hasl)
+	struct stat status;
+	vector<string> filesnow;
+	for(unsigned int i = 0; i < files.size(); i++)
 	{
-	getfiles(output, 
+		if((files.at(i) != "." && files.at(i) !="..") && (hasa || (files.at(i).at(0) == '.' && files.at(i).at(1) =='/') || files.at(i).at(0) !='.'))
+		{
+			string pathname = parent + '/' + files.at(i);
+			if(-1 == stat(pathname.c_str(), &status))
+			{
+				perror("There was an error with stat() ");
+				exit(1);
+			}
+			if(S_IFDIR & status.st_mode)
+			{
+				cout << pathname << ":" << endl;
+				getfiles(filesnow, const_cast<char*>(pathname.c_str()));
+				if(hasl)
+				{
+					outputl(filesnow, pathname, absname);
+					cout << endl;
+				}
+				else
+				{
+					outputnorm(filesnow);
+				}
+				doR(filesnow, pathname, absname);
+			}
+		}
+		filesnow.clear();
+	}
+}
 
-}*/
 int main(int argc, char **argv)
 {
+	string absname;
+	getabsolName(absname);
 	vector<string> commands;
 	vector<string> dirfiles;
 	bool okay = true;
@@ -248,45 +284,34 @@ int main(int argc, char **argv)
 	identify(commands, okay);		//organize and get all the info
 	if(okay)	//if no errors in flag, proceed to output
 	{
-		if(commands.size() > 0)	//if directories were specified, come here
+		if(commands.size() ==  0)	//if directories were specified, come here
 		{
-			for(unsigned int i = 0; i < commands.size(); ++i)
-			{
-				getfiles(dirfiles, const_cast<char*>(commands.at(i).c_str()));
-				if(commands.size() > 1)
-				{
-					cout << commands.at(i) << ": " << endl;
-				}
-				if(!hasl && !hasR)	//if no l or R flag, simple case, do this
-				{
-					outputnorm(dirfiles);
-				}
-				else if(hasl && !hasR)
-				{
-					outputl(dirfiles, commands.at(i));
-				}
-				if(commands.size()-1 > i)
-				{
-					cout << endl;
-				}
-				dirfiles.clear();
-			}
+			commands.push_back(".");
 		}
-		else //if no directory was specified, implied current directory, manually pass in . directory
+		for(unsigned int i = 0; i < commands.size(); ++i)
 		{
-			char *temp[1] = {new char('.')}; 
-			vector<string> quick;
-			quick.push_back(".");
-			getfiles(dirfiles, temp[0]);
-			if(!hasl && !hasR) //if no l or R flag, simple case, do this
+			getfiles(dirfiles, const_cast<char*>(commands.at(i).c_str()));
+			if(commands.size() > 1)
+			{
+				cout << commands.at(i) << ": " << endl;
+			}
+			if(!hasl && !hasR)	//if no l or R flag, simple case, do this
 			{
 				outputnorm(dirfiles);
 			}
 			else if(hasl && !hasR)
 			{
-				outputl(dirfiles, quick.at(0));
+				outputl(dirfiles, commands.at(i), absname);
 			}
-			delete temp[0];
+			else if(hasR)
+			{
+				doR(dirfiles, ".", absname);
+			}
+			if(commands.size()-1 > i)
+			{
+				cout << endl;
+			}
+			dirfiles.clear();
 		}
 	}
 	else
