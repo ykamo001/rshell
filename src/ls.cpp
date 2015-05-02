@@ -49,24 +49,31 @@ void identify(vector<string> &commands, bool &cond)
 	{
 		if(commands.at(i).at(0) == '-')
 		{
-			for(unsigned int j = 1; j < commands.at(i).size(); ++j)
+			if(commands.at(i).size() > 1)
 			{
-				if((commands.at(i).at(j) == 'a') && !hasa) 
+				for(unsigned int j = 1; j < commands.at(i).size(); ++j)
 				{
-					hasa = true;
+					if((commands.at(i).at(j) == 'a') && !hasa) 
+					{
+						hasa = true;
+					}
+					else if((commands.at(i).at(j) == 'l') && !hasl)
+					{
+						hasl = true;
+					}
+					else if((commands.at(i).at(j) == 'R') && !hasR)
+					{
+						hasR = true;
+					}
+					else if((commands.at(i).at(j) != 'R') && (commands.at(i).at(j) != 'a') && (commands.at(i).at(j) != 'l'))
+					{
+						cond = false;
+					}
 				}
-				else if((commands.at(i).at(j) == 'l') && !hasl)
-				{
-					hasl = true;
-				}
-				else if((commands.at(i).at(j) == 'R') && !hasR)
-				{
-					hasR = true;
-				}
-				else if((commands.at(i).at(j) != 'R') && (commands.at(i).at(j) != 'a') && (commands.at(i).at(j) != 'l'))
-				{
-					cond = false;
-				}
+			}
+			else
+			{
+				cond = false;
 			}
 		}	//this function identifies where the directories are in the command line
 		else
@@ -119,21 +126,54 @@ void outputnorm(vector<string> &display)
 {	//outputs the files/directories 
 	for(unsigned int i = 0; i < display.size(); ++i)
 	{
-			cout << display.at(i) << "  ";
+		cout << display.at(i) << "  ";
+		if(i == display.size() - 1)
+		{
+			cout << endl;
+		}
 	}
-	cout << endl;
 }
 
 void getpath(const vector<string> &take, vector<string> &give, string &org, string &absname) 
 {		
-	string temp = absname;
-	for(unsigned int i = 0; i < take.size(); ++i)
+	string temp;
+	bool fromhome = true;
+	if(org.size() < 5)
 	{
-		absname.append(org);
-		absname.append("/");
-		absname.append(take.at(i));
-		give.push_back(absname);
-		absname = temp;
+		fromhome = false;
+	}
+	else
+	{
+		for(unsigned int k = 0; k < 5; ++k)
+		{
+			if(org.at(k) != absname.at(k))
+			{
+				fromhome = false;
+			}
+		}
+	}
+	if(!fromhome)
+	{
+		temp = absname;
+		for(unsigned int i = 0; i < take.size(); ++i)
+		{
+			absname.append(org);
+			absname.append("/");
+			absname.append(take.at(i));
+			give.push_back(absname);
+			absname = temp;
+		}
+	}
+	else
+	{
+		temp = org;
+		for(unsigned int i = 0; i < take.size(); ++i)
+		{
+			org.append("/");
+			org.append(take.at(i));
+			give.push_back(org);
+			org = temp;
+		}
 	}
 }
 
@@ -220,7 +260,7 @@ void outputl(vector<string> &files, string &pname, string &absname)
 			{
 				cout << groupid->gr_name << ' ';
 			}
-			cout << status.st_size << ' ';
+			cout << setw(7) << right << status.st_size << ' ';
 			struct tm *tm;
 			char timebuf[15];
 			if(NULL == (tm = localtime(&(status.st_mtime))))
@@ -265,6 +305,7 @@ void doR(vector<string> files, string parent, string absname)
 				else
 				{
 					outputnorm(filesnow);
+					cout << endl;
 				}
 				doR(filesnow, pathname, absname);
 			}
@@ -284,7 +325,7 @@ int main(int argc, char **argv)
 	identify(commands, okay);		//organize and get all the info
 	if(okay)	//if no errors in flag, proceed to output
 	{
-		if(commands.size() ==  0)	//if directories were specified, come here
+		if(commands.size() ==  0)	//if directories were not specified, come here
 		{
 			commands.push_back(".");
 		}
@@ -299,13 +340,30 @@ int main(int argc, char **argv)
 			{
 				outputnorm(dirfiles);
 			}
-			else if(hasl && !hasR)
+			else if(hasl && !hasR)	//has the l flag but not R
 			{
 				outputl(dirfiles, commands.at(i), absname);
 			}
-			else if(hasR)
+			else if(hasR)	//has the R flag
 			{
-				doR(dirfiles, ".", absname);
+				if(hasl)
+				{
+					if(commands.size() <= 1)
+					{
+						cout << commands.at(i) << ":" << endl;
+					}
+					outputl(dirfiles, commands.at(i), absname);
+				}
+				else
+				{
+					if(commands.size() <= 1)
+					{
+						cout << commands.at(i) << ":" << endl;
+					}
+					outputnorm(dirfiles);
+					cout << endl;
+				}
+				doR(dirfiles, commands.at(i), absname);
 			}
 			if(commands.size()-1 > i)
 			{
