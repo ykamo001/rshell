@@ -13,6 +13,95 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
+void orfinder(string filter, vector<string> &take)
+{
+	unsigned int start = 0;
+	unsigned int cut = 0;
+	bool finished = false;
+	bool complete = false;
+	bool over = false;
+	string copy = filter;
+	while(!finished)
+	{
+		for(unsigned int i = start; i < filter.size()-2 && !complete; ++i)
+		{
+			if((filter.at(i) == '|') && (filter.at(i+1) == '|'))
+			{
+				copy = copy.substr(start, cut);
+				trim(copy);
+				take.push_back(copy);
+				while(i < filter.size() && filter.at(i) == '|')
+				{
+					++i;
+				}
+				if(i == filter.size())
+				{
+					over = true;
+				}
+				else
+				{
+					start = i;
+				}
+				complete = true;
+			}
+			else
+			{
+				cut++;
+			}
+		}
+		copy = filter;
+		if(!complete || over)
+		{
+			copy = copy.substr(start, copy.size()-start);
+			trim(copy);
+			take.push_back(copy);
+			finished = true;
+		}
+		else
+		{
+			cut = 0;
+			complete = false;
+			over = false;
+		}
+	}
+}
+
+void finder(const string search, bool &haspipe, bool &hasleft, bool &has2right, bool &hasright)
+{
+
+	size_t found = search.find("<");
+	if(found != string::npos)
+	{
+		hasleft = true;
+	}
+	found = search.find(">>");
+	if(found != string::npos)
+	{
+		has2right = true;
+	}
+	found = search.find(">");
+	if(found != string::npos)
+	{
+		hasright = true;
+	}
+	char last = 0;
+	for(unsigned int i = 0; i <= search.size()-2; ++i)
+	{
+		if(search.at(i) == '|' && last != '|' && search.at(i+1) != '|')
+		{
+			haspipe = true;
+		}
+		if(i == search.size()-2)
+		{
+			last = search.at(i);
+			if(search.at(i+1) == '|' && last != '|')
+			{
+				haspipe = true;
+			}
+		}
+		last = search.at(i);
+	}
+}
 
 void normalBash(string command)
 {
@@ -22,8 +111,8 @@ void normalBash(string command)
 	vector<string> and_cmd;		//this will hold the string of single commands combined by &&
 	vector<string> or_cmd;		//this will hold the string of commands combined by ||
 	char* cmd = new char[command.size()];
-	unsigned int loc = command.find_first_of("#");	//keep only everything before the first comment mark
-	command = command.substr(0, loc);
+	//unsigned int loc = command.find_first_of("#");	//keep only everything before the first comment mark
+	//command = command.substr(0, loc);
 	if(command.size() > 0)
 	{
 		copy.push_back(command);
@@ -59,13 +148,14 @@ void normalBash(string command)
 		for(unsigned int i = 0; i < sc_cmd.size(); ++i)	//keep executing these commands regardless of result from previous command
 		{
 			trim(sc_cmd.at(i));		//remove all the unnecessary white spaces around the string if in there
-			strcpy(cmd, (sc_cmd.at(i)).c_str());
-			token = strtok(cmd, "||");
-			while(token != NULL)
-			{
-				or_cmd.push_back(string(token));  //parse the string for || commands and split the code down to && commnds
-				token = strtok(NULL, "||");
-			}
+			//strcpy(cmd, (sc_cmd.at(i)).c_str());
+			//token = strtok(cmd, "||");
+			//while(token != NULL)
+			//{
+				//or_cmd.push_back(string(token));  //parse the string for || commands and split the code down to && commnds
+				//token = strtok(NULL, "||");
+			//}
+			orfinder(sc_cmd.at(i), or_cmd);
 			unsigned int fails = 0;
 			for(unsigned int i = 0; i < or_cmd.size(); ++i)	//keep doing || commands as long as the last command failed
 			{
@@ -83,6 +173,11 @@ void normalBash(string command)
 					for(unsigned int i = 0; i < and_cmd.size(); ++i) //keep doing && commands as long as the last command succeeded
 					{
 						trim(and_cmd.at(i));
+						bool haspipe = false;
+						bool hasleft = false;
+						bool has2right = false;
+						bool hasright = false;
+						finder(and_cmd.at(i), haspipe, hasleft, has2right, hasright);
 						if(trues == i)
 						{
 							strcpy(cmd, (and_cmd.at(i)).c_str());
@@ -108,10 +203,18 @@ void normalBash(string command)
 							{
 								if(and_cmd.at(i) != "exit")	//only move along to execvp if the command is not exit
 								{
-									if(-1 == execvp((copy.at(0)).c_str(), argv))
+									if(haspipe || hasleft || has2right || hasright)
 									{
-										perror("There was an error with execvp() ");	
-										_exit(1);	//if the command failed, then kill the child process and exit
+										cout << "I/O redirection" << endl;
+										_exit(0);
+									}
+									else
+									{	
+										if(-1 == execvp((copy.at(0)).c_str(), argv))
+										{
+											perror("There was an error with execvp() ");	
+											_exit(1);	//if the command failed, then kill the child process and exit
+										}
 									}
 								}
 								else //if the command is to exit, dont do anything, simply kill the child process and exit
@@ -143,7 +246,7 @@ void normalBash(string command)
 									return;
 								}
 							}
-						delete []argv;	//make sure to delete the dynamically allocated memory
+							delete []argv;	//make sure to delete the dynamically allocated memory
 						}
 						copy.clear();	//clear out the vector to be used again
 					}	//end of and_cmd
@@ -187,6 +290,8 @@ int main()
 			cout << "$ ";
 		}
 		getline(cin, command);	//get the entire line of command from user
+		unsigned int loc = command.find_first_of("#");	//keep only everything before the first comment mark
+		command = command.substr(0, loc);
 		if(command == "exit")
 		{
 			done = true;	//if the command they type in is initially exit
