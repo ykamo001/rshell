@@ -13,6 +13,7 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
+
 void orfinder(string filter, vector<string> &take)
 {
 	unsigned int start = 0;
@@ -23,7 +24,7 @@ void orfinder(string filter, vector<string> &take)
 	string copy = filter;
 	while(!finished)
 	{
-		for(unsigned int i = start; i < filter.size()-2 && !complete; ++i)
+		for(unsigned int i = start; i <= filter.size()-2 && !complete; ++i)
 		{
 			if((filter.at(i) == '|') && (filter.at(i+1) == '|'))
 			{
@@ -66,41 +67,43 @@ void orfinder(string filter, vector<string> &take)
 	}
 }
 
-void finder(const string search, bool &haspipe, bool &hasleft, bool &has2right, bool &hasright)
+bool charfinder(const char element, const string search)
 {
-
-	size_t found = search.find("<");
-	if(found != string::npos)
-	{
-		hasleft = true;
-	}
-	found = search.find(">>");
-	if(found != string::npos)
-	{
-		has2right = true;
-	}
-	found = search.find(">");
-	if(found != string::npos)
-	{
-		hasright = true;
-	}
 	char last = 0;
+	bool condition = false;
 	for(unsigned int i = 0; i <= search.size()-2; ++i)
 	{
-		if(search.at(i) == '|' && last != '|' && search.at(i+1) != '|')
+		if(search.at(i) == element && last != element && search.at(i+1) != element)
 		{
-			haspipe = true;
+			condition = true;
 		}
 		if(i == search.size()-2)
 		{
 			last = search.at(i);
-			if(search.at(i+1) == '|' && last != '|')
+			if(search.at(i+1) == element && last != element)
 			{
-				haspipe = true;
+				condition = true;
 			}
 		}
 		last = search.at(i);
 	}
+	return condition;
+}
+
+void finder(const string search, bool &haspipe, bool &hasleft, bool &has2right, bool &hasright)
+{
+	bool complete = false;
+	for(unsigned int i = 0; i <= search.size()-2 && !complete; ++i)
+	{
+		if((search.at(i) == '>') && (search.at(i+1) == '>'))
+		{
+			has2right = true;
+			complete = true;
+		}
+	}
+	hasleft = charfinder('<', search);
+	hasright = charfinder('>', search);
+	haspipe = charfinder('|', search);
 }
 
 void normalBash(string command)
@@ -111,8 +114,6 @@ void normalBash(string command)
 	vector<string> and_cmd;		//this will hold the string of single commands combined by &&
 	vector<string> or_cmd;		//this will hold the string of commands combined by ||
 	char* cmd = new char[command.size()];
-	//unsigned int loc = command.find_first_of("#");	//keep only everything before the first comment mark
-	//command = command.substr(0, loc);
 	if(command.size() > 0)
 	{
 		copy.push_back(command);
@@ -148,13 +149,6 @@ void normalBash(string command)
 		for(unsigned int i = 0; i < sc_cmd.size(); ++i)	//keep executing these commands regardless of result from previous command
 		{
 			trim(sc_cmd.at(i));		//remove all the unnecessary white spaces around the string if in there
-			//strcpy(cmd, (sc_cmd.at(i)).c_str());
-			//token = strtok(cmd, "||");
-			//while(token != NULL)
-			//{
-				//or_cmd.push_back(string(token));  //parse the string for || commands and split the code down to && commnds
-				//token = strtok(NULL, "||");
-			//}
 			orfinder(sc_cmd.at(i), or_cmd);
 			unsigned int fails = 0;
 			for(unsigned int i = 0; i < or_cmd.size(); ++i)	//keep doing || commands as long as the last command failed
