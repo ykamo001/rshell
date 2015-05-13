@@ -13,7 +13,19 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
-
+void onlyright(string command)
+{
+	char *token;
+	char* cmd = new char[command.size()];
+	strcpy(cmd, command.c_str());
+	token = strtok(cmd, ">");
+	vector<string> holder;
+	while(token != NULL)
+	{
+		holder.push_back(string(token));
+		token = strtok(NULL, ">");
+	}
+}
 void orfinder(string filter, vector<string> &take)
 {
 	unsigned int start = 0;
