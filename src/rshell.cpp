@@ -63,7 +63,7 @@ void onlyright(string command)
 	}
 	string master = all_cmd.at(all_cmd.size()-1).at(0);
 	int write_to;
-	if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY)))
+	if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
 	{
 		perror("There was an error with open() .");
 		exit(1);
@@ -205,7 +205,7 @@ void onlyright(string command)
 				int read_from;
 				if(k == 0)
 				{
-					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_TRUNC)))
+					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)))
 					{
 						perror("There was an error with open(). ");
 						exit(1);
@@ -218,7 +218,7 @@ void onlyright(string command)
 				}
 				else
 				{
-					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_RDONLY)))
+					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_RDONLY, S_IRUSR | S_IWUSR)))
 					{
 						perror("There was an error with open(). ");
 						exit(1);
