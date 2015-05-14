@@ -7,12 +7,17 @@
 #include <string.h>
 #include <cstring>
 #include <vector>
+#include <fcntl.h>
+#include <cstdlib>
+#include <errno.h>
+#include <sys/stat.h>
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace std;
 using namespace boost;
 
 bool done = false;
+
 void onlyright(string command)
 {
 	char *token;
@@ -25,7 +30,241 @@ void onlyright(string command)
 		holder.push_back(string(token));
 		token = strtok(NULL, ">");
 	}
+	int savestdout;
+	if(-1 == (savestdout = dup(1)))
+	{
+		perror("There was an error with dup(). ");
+		exit(1);
+	}
+	if(-1 == close(1))
+	{
+		perror("There was an error with close(). ");
+		exit(1);
+	}
+	vector<vector<string> > all_cmd;
+	vector<string> to_use;
+	for(unsigned int i = 0; i < holder.size(); ++i)
+	{
+		trim(holder.at(i));
+		strcpy(cmd, (holder.at(i)).c_str());
+		token = strtok(cmd, " ");
+		while(token != NULL)
+		{
+			to_use.push_back(string(token));
+			token = strtok(NULL, " ");
+		}
+		all_cmd.push_back(to_use);
+		to_use.clear();
+	}
+	if(all_cmd.size() == 1)
+	{
+		cerr << "rshell: syntax error near unexpected token `newline' " << endl;
+		exit(1);
+	}
+	string master = all_cmd.at(all_cmd.size()-1).at(0);
+	int write_to;
+	if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY)))
+	{
+		perror("There was an error with open() .");
+		exit(1);
+	}
+	int savestdin;
+	if(-1 == (savestdin = dup(0)))
+	{
+		perror("There was an error with dup(). ");
+		exit(1);
+	}
+	if(-1 == close(0))
+	{
+		perror("There was an error with close(). ");
+		exit(1);
+	}
+	to_use.clear();
+	bool special_case = false;
+	bool single_special = false;
+	unsigned int determine = 0;
+	for(unsigned int i = 0; i < all_cmd.size(); ++i)
+	{
+		to_use = all_cmd.at(i);
+		if(i == 0)
+		{
+			if((to_use.size() == 1) && (to_use.at(i) == "cat"))
+			{
+				determine++;
+				single_special = true;
+			}
+		}
+		else
+		{
+			if(to_use.size() == 1)
+			{
+				determine++;
+			}
+		}
+		to_use.clear();
+	}
+	if(determine == all_cmd.size())
+	{
+		special_case = true;
+	}
+	for(unsigned int i = 0; i < all_cmd.size(); ++i)
+	{
+		to_use.clear();
+		if(i == 0)
+		{
+			to_use = all_cmd.at(i);
+			if(special_case == true)
+			{
+				string inputs;
+				if(-1 == (dup2(savestdin, 0)))
+				{
+					perror("There was an error with dup2(). ");
+					exit(1);
+				}
+				while(special_case)
+				{
+					getline(cin, inputs);
+					int size;
+					char c[BUFSIZ];
+					if(-1 == (size = read(0, &c, BUFSIZ)))
+					{
+						perror("There was an error with read(). ");
+						exit(1);
+					}
+					while(size > 0)
+					{
+						if(-1 == write(write_to, c, size))
+						{
+							perror("There was an error with write(). ");
+							exit(1);
+						}
+						if(-1 == (size = read(0, &c, BUFSIZ)))
+						{
+							perror("There was an error with read(). ");
+							exit(1);
+						}
+					}
+				}
+				if(-1 == (savestdin = dup(0)))
+				{
+					perror("There was an error with dup(). ");
+					exit(1);
+				}
+				if(-1 == close(0))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
+			}
+			else if(single_special == true)
+			{
+				//do nothing
+			}
+			else
+			{
+				char **argv = new char*[to_use.size()+1];	//create an array of char pointers
+				for(unsigned int j = 0; j < to_use.size(); ++j)
+				{
+					trim(to_use.at(j));	//add char pointers into an array of pointers
+					argv[j] = const_cast<char*>((to_use.at(j)).c_str());	//this will allow us to use execvp 
+				}
+				argv[to_use.size()] = 0;
+				int pid = fork();
+				if(pid == -1)
+				{
+					perror("There was an error with fork(). ");
+					exit(1);
+				}
+				else if(pid == 0)
+				{
+					if(-1 == execvp((to_use.at(0)).c_str(), argv))
+					{
+						perror("There was an error with execvp(). ");
+						_exit(1);
+					}
+				}
+				else
+				{
+					int status;
+					wait(&status);
+					if(status == -1)
+					{
+						perror("There was an error with wait(). ");
+						exit(1);
+					}
+				}
+				delete []argv;
+			}
+		}
+		else
+		{
+			to_use = all_cmd.at(i);
+			int start = (i == all_cmd.size()-1) ? 1 : 0;
+			for(unsigned int k = start; k < to_use.size(); ++k)
+			{
+				int read_from;
+				if(k == 0)
+				{
+					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_TRUNC)))
+					{
+						perror("There was an error with open(). ");
+						exit(1);
+					}
+					if(-1 == close(read_from)) 
+					{
+						perror("There was an error with close(). ");
+						exit(1);
+					}
+				}
+				else
+				{
+					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_RDONLY)))
+					{
+						perror("There was an error with open(). ");
+						exit(1);
+					}
+					int size;
+					char c[BUFSIZ];
+					if(-1 == (size = read(read_from, &c, BUFSIZ)))
+					{
+						perror("There was an error with read(). ");
+						exit(1);
+					}
+					while(size > 0)
+					{
+						if(-1 == write(write_to, c, size))
+						{
+							perror("There was an error with write(). ");
+							exit(1);
+						}
+						if(-1 == (size = read(read_from, &c, BUFSIZ)))
+						{
+							perror("There was an error with read(). ");
+							exit(1);
+						}
+					}
+					if(-1 == close(read_from))
+					{
+						perror("There was an error with close(). ");
+						exit(1);
+					}
+				}
+			}
+		}
+	}
+	delete []cmd;
+	if(-1 == close(write_to))
+	{
+		perror("There was an error with close(). ");
+		exit(1);
+	}
+	if((-1 == dup2(savestdin, 0)) || (-1 == dup2(savestdout, 1)))
+	{
+		perror("There was an error with dup2(). ");
+		exit(1);
+	}
 }
+
 void orfinder(string filter, vector<string> &take)
 {
 	unsigned int start = 0;
@@ -212,6 +451,10 @@ void normalBash(string command)
 									if(haspipe || hasleft || has2right || hasright)
 									{
 										cout << "I/O redirection" << endl;
+										if(hasright && !haspipe && !hasleft && !has2right)
+										{
+											onlyright(and_cmd.at(i));
+										}
 										_exit(0);
 									}
 									else
