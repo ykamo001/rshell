@@ -17,7 +17,22 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
-
+void onlyleft(string command)
+{
+	char *token;
+	char* cmd = new char[command.size()];
+	strcpy(cmd, command.c_str());
+	token = strtok(cmd, "<");
+	vector<string> holder;
+	while(token != NULL)
+	{
+		if(string(token).find_first_not_of(' ') != string::npos)
+		{
+			holder.push_back(string(token));
+		}
+		token = strtok(NULL, "<");
+	}
+}
 void onlyright(string command)
 {
 	char *token;
@@ -27,7 +42,10 @@ void onlyright(string command)
 	vector<string> holder;
 	while(token != NULL)
 	{
-		holder.push_back(string(token));
+		if(string(token).find_first_not_of(' ') != string::npos)
+		{
+			holder.push_back(string(token));
+		}
 		token = strtok(NULL, ">");
 	}
 	int savestdout;
@@ -58,7 +76,7 @@ void onlyright(string command)
 	}
 	if(all_cmd.size() == 1)
 	{
-		cerr << "rshell: syntax error near unexpected token `newline' " << endl;
+		cerr << "rshell: syntax error near unexpected token " << endl;
 		exit(1);
 	}
 	string master = all_cmd.at(all_cmd.size()-1).at(0);
@@ -124,25 +142,11 @@ void onlyright(string command)
 				while(special_case)
 				{
 					getline(cin, inputs);
-					int size;
-					char c[BUFSIZ];
-					if(-1 == (size = read(0, &c, BUFSIZ)))
+					inputs += '\n';
+					if(-1 == write(write_to, inputs.c_str(), inputs.size()))
 					{
-						perror("There was an error with read(). ");
+						perror("There was an error with write(). ");
 						exit(1);
-					}
-					while(size > 0)
-					{
-						if(-1 == write(write_to, c, size))
-						{
-							perror("There was an error with write(). ");
-							exit(1);
-						}
-						if(-1 == (size = read(0, &c, BUFSIZ)))
-						{
-							perror("There was an error with read(). ");
-							exit(1);
-						}
 					}
 				}
 				if(-1 == (savestdin = dup(0)))
