@@ -64,11 +64,21 @@ void onlyleft(string command)
 		cerr << "rshell: syntax error " << endl;
 		exit(1);
 	}
-	unsigned int determine = 1;
+	unsigned int determine = 0;
 	bool special_case = false;
-	for(unsigned int i = 1; i < all_cmd.size(); ++i)
+	bool has_command = false;
+	bool run_once = false;
+	for(unsigned int i = 0; i < all_cmd.size(); ++i)
 	{
 		to_use = all_cmd.at(i);
+		if(i == 0)
+		{
+			if(to_use.size() > 1)
+			{
+				has_command = true;
+			}
+		}
+
 		if(to_use.size() == 1)
 		{
 			determine++;
@@ -78,85 +88,100 @@ void onlyleft(string command)
 	{
 		special_case = true;
 	}
+	if((has_command) && (determine == all_cmd.size()-1))
+	{
+		run_once = true;
+	}
 	vector<string> command_run;
 	command_run = all_cmd.at(0);
-	for(unsigned int i = 1; i < all_cmd.size(); ++i)
+	vector<string> all_info;
+	if(!run_once)
 	{
-		to_use.clear();
-		to_use = all_cmd.at(i);
-		if(special_case && (i == all_cmd.size()-1) && (to_use.size() == 1))
+		for(unsigned int i = 1; i < all_cmd.size(); ++i)
 		{
-			char **argv = new char*[command_run.size()+2];	//create an array of char pointers
-			for(unsigned int k = 0; k < command_run.size(); ++k)
+			to_use.clear();
+			to_use = all_cmd.at(i);
+			if(special_case && (i == all_cmd.size()-1) && (to_use.size() == 1))
 			{
-				argv[k] = const_cast<char*>((command_run.at(k)).c_str());	//this will allow us to use execvp 
+				all_info.push_back(to_use.at(0));
 			}
-			argv[command_run.size()] = const_cast<char*>((to_use.at(0)).c_str());	//this will allow us to use execvp 
-			argv[command_run.size()+1] = 0;
-			int pid = fork();
-			if(pid == -1)
+			else if(to_use.size() > 1)
 			{
-				perror("There was an error with fork(). ");
+				for(unsigned int j = 1; j < to_use.size(); ++j)
+				{
+					all_info.push_back(to_use.at(j));
+				}
+			}
+		}
+		char **argv = new char*[command_run.size()+all_info.size()+1];	//create an array of char pointers
+		for(unsigned int k = 0; k < command_run.size(); ++k)
+		{
+			argv[k] = const_cast<char*>((command_run.at(k)).c_str());	//this will allow us to use execvp 
+		}
+		for(unsigned int k = 0; k < all_info.size(); ++k)
+		{
+			argv[command_run.size()+k] = const_cast<char*>((all_info.at(k)).c_str());	//this will allow us to use execvp
+		}
+		argv[command_run.size()+all_info.size()] = 0;
+		int pid = fork();
+		if(pid == -1)
+		{
+			perror("There was an error with fork(). ");
+			exit(1);
+		}
+		else if(pid == 0)
+		{
+			if(-1 == execvp((command_run.at(0)).c_str(), argv))
+			{
+				perror("There was an error with execvp(). ");
+				_exit(1);
+			}
+		}
+		else
+		{
+			int status;
+			wait(&status);
+			if(status == -1)
+			{
+				perror("There was an error with wait(). ");
 				exit(1);
 			}
-			else if(pid == 0)
-			{
-				if(-1 == execvp((command_run.at(0)).c_str(), argv))
-				{
-					perror("There was an error with execvp(). ");
-					_exit(1);
-				}
-			}
-			else
-			{
-				int status;
-				wait(&status);
-				if(status == -1)
-				{
-					perror("There was an error with wait(). ");
-					exit(1);
-				}
-			}
-			delete []argv;
 		}
-		else if(to_use.size() > 1)
+		delete []argv;
+	}
+	else
+	{
+		char **argv = new char*[command_run.size()+1];	//create an array of char pointers
+		for(unsigned int k = 0; k < command_run.size(); ++k)
 		{
-			for(unsigned int j = 1; j < to_use.size(); ++j)
+			argv[k] = const_cast<char*>((command_run.at(k)).c_str());	//this will allow us to use execvp 
+		}
+		argv[command_run.size()] = 0;
+		int pid = fork();
+		if(pid == -1)
+		{
+			perror("There was an error with fork(). ");
+			exit(1);
+		}
+		else if(pid == 0)
+		{
+			if(-1 == execvp((command_run.at(0)).c_str(), argv))
 			{
-				char **argv = new char*[command_run.size()+2];	//create an array of char pointers
-				for(unsigned int k = 0; k < command_run.size(); ++k)
-				{
-					argv[k] = const_cast<char*>((command_run.at(k)).c_str());	//this will allow us to use execvp 
-				}
-				argv[command_run.size()] = const_cast<char*>((to_use.at(j)).c_str());	//this will allow us to use execvp 
-				argv[command_run.size()+1] = 0;
-				int pid = fork();
-				if(pid == -1)
-				{
-					perror("There was an error with fork(). ");
-					exit(1);
-				}
-				else if(pid == 0)
-				{
-					if(-1 == execvp((command_run.at(0)).c_str(), argv))
-					{
-						perror("There was an error with execvp(). ");
-						_exit(1);
-					}
-				}
-				else
-				{
-					int status;
-					wait(&status);
-					if(status == -1)
-					{
-						perror("There was an error with wait(). ");
-						exit(1);
-					}
-				}
-				delete []argv;
+				perror("There was an error with execvp(). ");
+				_exit(1);
 			}
 		}
+		else
+		{
+			int status;
+			wait(&status);
+			if(status == -1)
+			{
+				perror("There was an error with wait(). ");
+				exit(1);
+			}
+		}
+		delete []argv;
 	}
 	delete []cmd;
 	if(-1 == dup2(savestdin, 0))
