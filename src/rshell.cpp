@@ -234,7 +234,7 @@ void onlyright(string command)
 	}
 	if(all_cmd.size() == 1)
 	{
-		cerr << "rshell: syntax error near unexpected token " << endl;
+		cerr << "rshell: syntax error " << endl;
 		exit(1);
 	}
 	string master = all_cmd.at(all_cmd.size()-1).at(0);
@@ -424,6 +424,57 @@ void onlyright(string command)
 	{
 		perror("There was an error with dup2(). ");
 		exit(1);
+	}
+}
+
+void left_right_seperate(string command, string &left, string &right)
+{
+	char *token;
+	char* cmd = new char[command.size()];
+	strcpy(cmd, command.c_str());
+	vector<string> temp;
+	vector<string> left_commands;
+	vector<string> right_commands;
+	token = strtok(cmd, "<");
+	while(token != NULL)
+	{
+		temp.push_back(string(token));
+		token = strtok(NULL, "<");
+	}
+	for(unsigned int i = 0; i < temp.size(); ++i)
+	{
+		strcpy(cmd, (temp.at(i)).c_str());
+		token = strtok(cmd, ">");
+		bool first = true;
+		while(token != NULL)
+		{
+			if(first)
+			{
+				left_commands.push_back(string(token));
+				first = false;
+			}
+			else
+			{
+				right_commands.push_back(string(token));
+			}
+			token = strtok(NULL, "<");
+		}
+	}
+	for(unsigned int i = 0; i < left_commands.size(); ++i)
+	{
+		left += left_commands.at(i);
+		if(i != left_commands.size()-1)
+		{
+			left += '<';
+		}
+	}
+	for(unsigned int i = 0; i < right_commands.size(); ++i)
+	{
+		right += right_commands.at(i);
+		if(i != right_commands.size()-1)
+		{
+			right += '>';
+		}
 	}
 }
 
@@ -620,6 +671,14 @@ void normalBash(string command)
 										else if(hasleft && !hasright && !haspipe && !has2right)
 										{
 											onlyleft(and_cmd.at(i));
+										}
+										else if(hasleft && hasright && !haspipe && !has2right)
+										{
+											string left;
+											string right;
+											left_right_seperate(and_cmd.at(i), left, right);
+											cout << left << endl;
+											cout << right << endl;
 										}
 										_exit(0);
 									}
