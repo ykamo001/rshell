@@ -61,8 +61,22 @@ void onlyleft(string command)
 	}
 	if(all_cmd.size() == 1)
 	{
-		cerr << "rshell: syntax error near unexpected token " << endl;
+		cerr << "rshell: syntax error " << endl;
 		exit(1);
+	}
+	unsigned int determine = 1;
+	bool special_case = false;
+	for(unsigned int i = 1; i < all_cmd.size(); ++i)
+	{
+		to_use = all_cmd.at(i);
+		if(to_use.size() == 1)
+		{
+			determine++;
+		}
+	}
+	if(determine == all_cmd.size())
+	{
+		special_case = true;
 	}
 	vector<string> command_run;
 	command_run = all_cmd.at(0);
@@ -70,7 +84,7 @@ void onlyleft(string command)
 	{
 		to_use.clear();
 		to_use = all_cmd.at(i);
-		if((i == all_cmd.size()-1) && (to_use.size() == 1))
+		if(special_case && (i == all_cmd.size()-1) && (to_use.size() == 1))
 		{
 			char **argv = new char*[command_run.size()+2];	//create an array of char pointers
 			for(unsigned int k = 0; k < command_run.size(); ++k)
