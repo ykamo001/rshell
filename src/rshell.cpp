@@ -17,6 +17,7 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
+
 void onlyleft(string command)
 {
 	char *token;
@@ -32,7 +33,141 @@ void onlyleft(string command)
 		}
 		token = strtok(NULL, "<");
 	}
+	int savestdin;
+	if(-1 == (savestdin = dup(0)))
+	{
+		perror("There was an error with dup(). ");
+		exit(1);
+	}
+	if(-1 == close(0))
+	{
+		perror("There was an error with close(). ");
+		exit(1);
+	}
+	vector<vector<string> > all_cmd;
+	vector<string> to_use;
+	for(unsigned int i = 0; i < holder.size(); ++i)
+	{
+		trim(holder.at(i));
+		strcpy(cmd, (holder.at(i)).c_str());
+		token = strtok(cmd, " ");
+		while(token != NULL)
+		{
+			to_use.push_back(string(token));
+			token = strtok(NULL, " ");
+		}
+		all_cmd.push_back(to_use);
+		to_use.clear();
+	}
+	if(all_cmd.size() == 1)
+	{
+		cerr << "rshell: syntax error near unexpected token " << endl;
+		exit(1);
+	}
+	string temp;
+	vector<string> all_info;
+	bool special_case = false;
+	for(unsigned int i = 0; i < all_cmd.size(); ++i)
+	{
+		to_use.clear();
+		to_use = all_cmd.at(i);
+		if(i == 0)
+		{
+			if((to_use.size() == 1) && (to_use.at(0) == "cat"))
+			{
+				special_case = true;
+			}
+			/*for(unsigned int j = 0; j < to_use.size(); ++j)
+			{
+				all_info.push_back(to_use.at(j));
+			}*/
+		}
+		else
+		{
+			for(unsigned int j = 0; j < to_use.size(); ++j)
+			{
+				int read_from;
+				if((to_use.size() > 1) || ((i == all_cmd.size()-1) && (to_use.size() == 1)))
+				{
+					if(-1 == (read_from = open((to_use.at(j)).c_str(), O_RDONLY | O_CREAT)))
+					{
+						perror("There was an error with open(). ");
+						exit(1);
+					}
+					int size;
+					char c[BUFSIZ];
+					if(-1 == (size = read(read_from, &c, BUFSIZ)))
+					{
+						perror("There was an error with read(). ");
+						exit(1);
+					}
+					temp.clear();
+					while(size > 0)
+					{
+						temp += string(c);
+						if(-1 == (size = read(read_from, &c, BUFSIZ)))
+						{
+							perror("There was an error with read(). ");
+							exit(1);
+						}
+					}
+					if(!(temp.empty()))
+					{
+						all_info.push_back(temp);
+					}
+					if(-1 == close(read_from))
+					{
+						perror("There was an error with close(). ");
+						exit(1);
+					}
+				}
+			}
+		}
+	}
+	if(special_case)
+	{
+		for(unsigned int l = 0; l < all_info.size(); l++)
+		{
+			cout << all_info.at(l);
+		}
+	}
+	else
+	{
+		char **argv = new char*[all_info.size()+1];	//create an array of char pointers
+		for(unsigned int k = 0; k < all_info.size(); ++k)
+		{
+			argv[k] = const_cast<char*>((all_info.at(k)).c_str());	//this will allow us to use execvp 
+		}
+		argv[all_info.size()] = 0;
+		int pid = fork();
+		if(pid == -1)
+		{
+			perror("There was an error with fork(). ");
+			exit(1);
+		}
+		else if(pid == 0)
+		{
+			if(-1 == execvp((all_info.at(0)).c_str(), argv))
+			{
+				perror("There was an error with execvp(). ");
+				_exit(1);
+			}
+		}
+		else
+		{
+			int status;
+			wait(&status);
+			if(status == -1)
+			{
+				perror("There was an error with wait(). ");
+				exit(1);
+			}
+		}
+		delete []argv;
+	}
+	delete []cmd;
 }
+
 void onlyright(string command)
 {
 	char *token;
@@ -458,6 +593,10 @@ void normalBash(string command)
 										if(hasright && !haspipe && !hasleft && !has2right)
 										{
 											onlyright(and_cmd.at(i));
+										}
+										else if(hasleft && !hasright && !haspipe && !has2right)
+										{
+											onlyleft(and_cmd.at(i));
 										}
 										_exit(0);
 									}
