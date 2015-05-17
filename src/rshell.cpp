@@ -889,6 +889,22 @@ void normalBash(string command)
 											cout << left << endl;
 											cout << right << endl;
 											cout << need_command << endl;
+											if(hasleft && !hasright)
+											{
+												onlyleft(left, hasright, master_file);
+												onlyright(need_command, hasleft, has2right);
+											}
+											else if(!hasleft && hasright)
+											{
+												onlyright(right, hasleft, false);
+												onlyright(need_command, hasleft, has2right);
+											}
+											else
+											{
+												onlyleft(left, hasright, master_file);
+												onlyright(right, hasleft, has2right);
+												onlyright(need_command, hasleft, has2right);
+											}
 										}
 										_exit(0);
 									}
