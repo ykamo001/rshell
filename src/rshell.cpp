@@ -744,6 +744,104 @@ void double_right_parse(string command, vector<string> &doubleright, string &wor
 		word += rest.at(i);
 	}
 }
+
+void piping(string command)
+{
+	char *token;
+	char* cmd = new char[command.size()];
+	vector<string> parsed;
+	strcpy(cmd, command.c_str());
+	token = strtok(cmd, "|");
+	while(token != NULL)
+	{
+		parsed.push_back(string(token));
+		token = strtok(NULL, "|");
+	}
+	delete []cmd;
+	vector<vector<string> > all_diff;
+	vector<string> temp;
+	for(unsigned int i = 0; i < parsed.size(); ++i)
+	{
+		cmd = new char[(parsed.at(i)).size()];
+		strcpy(cmd, (parsed.at(i)).c_str());
+		token = strtok(cmd, " ");
+		while(token != NULL)
+		{
+			temp.push_back(string(token));
+			token = strtok(NULL, " ");
+		}
+		all_diff.push_back(temp);
+		delete []cmd;
+		temp.clear();
+	}
+	const int PIPE_READ = 0;
+	const int PIPE_WRITE = 1;
+	temp.clear();
+	struct pipe_holder{ int fd[2]; };
+	vector<pipe_holder> pipes;
+	for(unsigned int i = 0; i < all_diff.size()-1; ++i)
+	{
+		int fd[2];
+		pipe_holder fdHold;
+		if(-1 == pipe(fd))
+		{
+			perror("There was an error with pipe(). ");
+			exit(1);
+		}
+		for(unsigned int j = 0; j < 2; ++j)
+		{
+			fdHold.fd[j] = fd[j];
+		}
+		pipes.push_back(fdHold);
+	}
+	for(unsigned int i = 0; i < all_diff.size(); ++i)
+	{
+		temp = all_diff.at(i)
+		char **argv = new char*[temp.size()+1];	//create an array of char pointers
+		for(unsigned int j = 0; j < temp.size(); ++j)
+		{
+			trim(temp.at(j));	//add char pointers into an array of pointers
+			argv[j] = const_cast<char*>((temp.at(j)).c_str());	//this will allow us to use execvp 
+		}
+		argv[copy.size()] = 0;
+		int pid = fork();
+		if(-1 == pid)
+		{
+			perror("There was an error with fork(). ");
+			exit(1);
+		}
+		else if(pid == 0)
+		{
+			if(i == 0)
+			{
+				if(-1 == dup2(pipes.at(i).fd[PIPE_WRITE], 1))
+				{
+					perror("There was an error with dup2(). ");
+					exit(1);
+				}
+				if(-1 == close(pipes.at(i).fd[PIPE_READ]))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
+			}
+			else if((i > 0) && ((i+1) > all_cmd.size()))
+			{
+				//if(-1 == dup2(
+			}
+			if(-1 == execvp((temp.at(0)).c_str(), argv))
+			{
+				perror("There was an error with execvp(). ");
+				exit(1);
+			}
+		}
+		else
+		{
+			if(i == all_cmd.size()-1)
+			{
+
+}
+
 void normalBash(string command)
 {
 	char *token;
