@@ -18,7 +18,7 @@ using namespace boost;
 
 bool done = false;
 
-void onlyleft(string command)
+void onlyleft(string command, bool hasright, string master)
 {
 	char *token;
 	char* cmd = new char[command.size()];
@@ -43,6 +43,26 @@ void onlyleft(string command)
 	{
 		perror("There was an error with close(). ");
 		exit(1);
+	}
+	int savestdout;
+	int write_to;
+	if(hasright)
+	{
+		if(-1 == (savestdout = dup(1)))
+		{
+			perror("There was an error with dup(). ");
+			exit(1);
+		}
+		if(-1 == close(1))
+		{
+			perror("There was an error with close(). ");
+			exit(1);
+		}
+		if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+		{
+			perror("There was an error with open() .");
+			exit(1);
+		}
 	}
 	vector<vector<string> > all_cmd;
 	vector<string> to_use;
@@ -184,6 +204,19 @@ void onlyleft(string command)
 		delete []argv;
 	}
 	delete []cmd;
+	if(hasright)
+	{
+		if(-1 == close(write_to))
+		{
+			perror("There was an error with close(). ");
+			exit(1);
+		}
+		if(-1 == dup2(savestdout, 1))
+		{
+			perror("There was an error with dup2(). ");
+			exit(1);
+		}
+	}
 	if(-1 == dup2(savestdin, 0))
 	{
 		perror("There was an error with dup2(). ");
@@ -206,22 +239,13 @@ void onlyright(string command)
 		}
 		token = strtok(NULL, ">");
 	}
-	int savestdout;
-	if(-1 == (savestdout = dup(1)))
-	{
-		perror("There was an error with dup(). ");
-		exit(1);
-	}
-	if(-1 == close(1))
-	{
-		perror("There was an error with close(). ");
-		exit(1);
-	}
+	delete []cmd;
 	vector<vector<string> > all_cmd;
 	vector<string> to_use;
 	for(unsigned int i = 0; i < holder.size(); ++i)
 	{
 		trim(holder.at(i));
+		char* cmd = new char[holder.at(i).size()];
 		strcpy(cmd, (holder.at(i)).c_str());
 		token = strtok(cmd, " ");
 		while(token != NULL)
@@ -231,6 +255,7 @@ void onlyright(string command)
 		}
 		all_cmd.push_back(to_use);
 		to_use.clear();
+		delete []cmd;
 	}
 	if(all_cmd.size() == 1)
 	{
@@ -238,23 +263,6 @@ void onlyright(string command)
 		exit(1);
 	}
 	string master = all_cmd.at(all_cmd.size()-1).at(0);
-	int write_to;
-	if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
-	{
-		perror("There was an error with open() .");
-		exit(1);
-	}
-	int savestdin;
-	if(-1 == (savestdin = dup(0)))
-	{
-		perror("There was an error with dup(). ");
-		exit(1);
-	}
-	if(-1 == close(0))
-	{
-		perror("There was an error with close(). ");
-		exit(1);
-	}
 	to_use.clear();
 	bool special_case = false;
 	bool single_special = false;
@@ -264,10 +272,13 @@ void onlyright(string command)
 		to_use = all_cmd.at(i);
 		if(i == 0)
 		{
-			if((to_use.size() == 1) && (to_use.at(i) == "cat"))
+			if(to_use.size() == 1)
 			{
 				determine++;
-				single_special = true;
+				if(to_use.at(i) == "cat")
+				{
+					single_special = true;
+				}
 			}
 		}
 		else
@@ -283,18 +294,31 @@ void onlyright(string command)
 	{
 		special_case = true;
 	}
+	holder.clear();
 	for(unsigned int i = 0; i < all_cmd.size(); ++i)
 	{
 		to_use.clear();
+		to_use = all_cmd.at(i);
 		if(i == 0)
 		{
-			to_use = all_cmd.at(i);
-			if(special_case == true)
+			if(special_case && single_special)
 			{
 				string inputs;
-				if(-1 == (dup2(savestdin, 0)))
+				int savestdout;
+				if(-1 == (savestdout = dup(1)))
 				{
-					perror("There was an error with dup2(). ");
+					perror("There was an error with dup(). ");
+					exit(1);
+				}
+				if(-1 == close(1))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
+				int write_to;
+				if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+				{
+					perror("There was an error with open() .");
 					exit(1);
 				}
 				while(special_case)
@@ -307,75 +331,45 @@ void onlyright(string command)
 						exit(1);
 					}
 				}
-				if(-1 == (savestdin = dup(0)))
-				{
-					perror("There was an error with dup(). ");
-					exit(1);
-				}
-				if(-1 == close(0))
+				if(-1 == close(write_to))
 				{
 					perror("There was an error with close(). ");
 					exit(1);
 				}
-			}
-			else if(single_special == true)
-			{
-				//do nothing
+				if(-1 == dup2(savestdout, 1))
+				{
+					perror("There was an error with dup2(). ");
+					exit(1);
+				}
 			}
 			else
 			{
-				char **argv = new char*[to_use.size()+1];	//create an array of char pointers
-				for(unsigned int j = 0; j < to_use.size(); ++j)
+				for(unsigned int q = 0; q < to_use.size(); ++q)
 				{
-					trim(to_use.at(j));	//add char pointers into an array of pointers
-					argv[j] = const_cast<char*>((to_use.at(j)).c_str());	//this will allow us to use execvp 
+					holder.push_back(to_use.at(q));
 				}
-				argv[to_use.size()] = 0;
-				int pid = fork();
-				if(pid == -1)
-				{
-					perror("There was an error with fork(). ");
-					exit(1);
-				}
-				else if(pid == 0)
-				{
-					if(-1 == execvp((to_use.at(0)).c_str(), argv))
-					{
-						perror("There was an error with execvp(). ");
-						_exit(1);
-					}
-				}
-				else
-				{
-					int status;
-					wait(&status);
-					if(status == -1)
-					{
-						perror("There was an error with wait(). ");
-						exit(1);
-					}
-				}
-				delete []argv;
 			}
 		}
 		else
 		{
 			to_use = all_cmd.at(i);
-			int start = (i == all_cmd.size()-1) ? 1 : 0;
-			for(unsigned int k = start; k < to_use.size(); ++k)
+			for(unsigned int k = 0; k < to_use.size(); ++k)
 			{
 				int read_from;
 				if(k == 0)
 				{
-					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)))
-					{
-						perror("There was an error with open(). ");
-						exit(1);
-					}
-					if(-1 == close(read_from)) 
-					{
-						perror("There was an error with close(). ");
-						exit(1);
+					if(i < all_cmd.size()-1)
+					{	
+						if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_TRUNC | O_RDONLY, S_IRUSR | S_IWUSR)))
+						{
+							perror("There was an error with open(). ");
+							exit(1);
+						}
+						if(-1 == close(read_from))
+						{
+							perror("There was an error with close(). ");
+							exit(1);
+						}
 					}
 				}
 				else
@@ -385,42 +379,71 @@ void onlyright(string command)
 						perror("There was an error with open(). ");
 						exit(1);
 					}
-					int size;
-					char c[BUFSIZ];
-					if(-1 == (size = read(read_from, &c, BUFSIZ)))
-					{
-						perror("There was an error with read(). ");
-						exit(1);
-					}
-					while(size > 0)
-					{
-						if(-1 == write(write_to, c, size))
-						{
-							perror("There was an error with write(). ");
-							exit(1);
-						}
-						if(-1 == (size = read(read_from, &c, BUFSIZ)))
-						{
-							perror("There was an error with read(). ");
-							exit(1);
-						}
-					}
 					if(-1 == close(read_from))
 					{
 						perror("There was an error with close(). ");
 						exit(1);
 					}
+					holder.push_back(to_use.at(k));
 				}
 			}
 		}
 	}
-	delete []cmd;
-	if(-1 == close(write_to))
+	char **argv = new char*[holder.size()+1];	
+	for(unsigned int j = 0; j < holder.size(); ++j)
+	{
+		trim(holder.at(j));	
+		argv[j] = const_cast<char*>((holder.at(j)).c_str());	
+	}
+	argv[holder.size()] = 0;
+	int savestdout;
+	if(-1 == (savestdout = dup(1)))
+	{
+		perror("There was an error with dup(). ");
+		exit(1);
+	}
+	if(-1 == close(1))
 	{
 		perror("There was an error with close(). ");
 		exit(1);
 	}
-	if((-1 == dup2(savestdin, 0)) || (-1 == dup2(savestdout, 1)))
+	int write_to;
+	if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+	{
+		perror("There was an error with open() .");
+		exit(1);
+	}
+	int pid = fork();
+	if(pid == -1)
+	{
+		perror("There was an error with fork(). ");
+		exit(1);
+	}
+	else if(pid == 0)
+	{
+		if(-1 == execvp((holder.at(0)).c_str(), argv))
+		{
+			perror("There was an error with execvp(). ");
+			_exit(1);
+		}
+	}
+	else
+	{
+		int status;
+		wait(&status);
+		if(status == -1)
+		{
+			perror("There was an error with wait(). ");
+			exit(1);
+		}
+		if(-1 == close(write_to))
+		{
+			perror("There was an error with close(). ");
+			exit(1);
+		}
+	}
+	delete []argv;
+	if(-1 == dup2(savestdout, 1))
 	{
 		perror("There was an error with dup2(). ");
 		exit(1);
@@ -476,6 +499,7 @@ void left_right_seperate(string command, string &left, string &right)
 			right += '>';
 		}
 	}
+	delete []cmd;
 }
 
 void orfinder(string filter, vector<string> &take)
@@ -670,7 +694,7 @@ void normalBash(string command)
 										}
 										else if(hasleft && !hasright && !haspipe && !has2right)
 										{
-											onlyleft(and_cmd.at(i));
+											onlyleft(and_cmd.at(i), hasright, "");
 										}
 										else if(hasleft && hasright && !haspipe && !has2right)
 										{
