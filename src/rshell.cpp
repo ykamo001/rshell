@@ -558,6 +558,7 @@ void left_right_seperate(string command, string &left, string &right, string &ma
 		if(!file_exists(temp.at(i)))
 		{
 			final += temp.at(i);
+			final += " ";
 		}
 	}
 	temp.clear();
@@ -596,18 +597,20 @@ void left_right_seperate(string command, string &left, string &right, string &ma
 		left += left_commands.at(i);
 		if(i != left_commands.size()-1)
 		{
-			left += " <";
+			left += " < ";
 		}
 	}
 	right += final;
-	right += " >";
+	right += " > ";
 	for(unsigned int i = 0; i < right_commands.size(); ++i)
 	{
 		right += right_commands.at(i);
+		right += ' ';
 		if(i != right_commands.size()-1)
 		{
 			right += '>';
 		}
+		right += ' ';
 	}
 	master = master_finder(right);
 }
@@ -731,7 +734,7 @@ void double_right_parse(string command, vector<string> &doubleright, string &wor
 				over = true;
 			}
 		}
-		if(over)
+		if(over && !finish)
 		{
 			doubleright.push_back(temp);
 		}
@@ -885,10 +888,6 @@ void normalBash(string command)
 													need_command += " >> ";
 												}
 											}
-											cout << master_file << endl;
-											cout << left << endl;
-											cout << right << endl;
-											cout << need_command << endl;
 											if(hasleft && !hasright)
 											{
 												onlyleft(left, hasright, master_file);
@@ -897,12 +896,16 @@ void normalBash(string command)
 											else if(!hasleft && hasright)
 											{
 												onlyright(right, hasleft, false);
+												need_command += " ";
+												need_command += master_file;
 												onlyright(need_command, hasleft, has2right);
 											}
 											else
 											{
 												onlyleft(left, hasright, master_file);
 												onlyright(right, hasleft, has2right);
+												need_command += " ";
+												need_command += master_file;
 												onlyright(need_command, hasleft, has2right);
 											}
 										}
