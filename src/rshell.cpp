@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
 using namespace boost;
@@ -33,6 +34,7 @@ void onlyleft(string command, bool hasright, string master)
 		}
 		token = strtok(NULL, "<");
 	}
+	delete []cmd;
 	int savestdin;
 	if(-1 == (savestdin = dup(0)))
 	{
@@ -69,6 +71,7 @@ void onlyleft(string command, bool hasright, string master)
 	for(unsigned int i = 0; i < holder.size(); ++i)
 	{
 		trim(holder.at(i));
+		cmd = new char[(holder.at(i)).size()];
 		strcpy(cmd, (holder.at(i)).c_str());
 		token = strtok(cmd, " ");
 		while(token != NULL)
@@ -78,6 +81,7 @@ void onlyleft(string command, bool hasright, string master)
 		}
 		all_cmd.push_back(to_use);
 		to_use.clear();
+		delete []cmd;
 	}
 	if(all_cmd.size() == 1)
 	{
@@ -112,16 +116,21 @@ void onlyleft(string command, bool hasright, string master)
 	{
 		run_once = true;
 	}
-	vector<string> command_run;
-	command_run = all_cmd.at(0);
 	vector<string> all_info;
 	if(!run_once)
 	{
-		for(unsigned int i = 1; i < all_cmd.size(); ++i)
+		for(unsigned int i = 0; i < all_cmd.size(); ++i)
 		{
 			to_use.clear();
 			to_use = all_cmd.at(i);
-			if(special_case && (i == all_cmd.size()-1) && (to_use.size() == 1))
+			if(i == 0)
+			{
+				for(unsigned int j = 0; j < to_use.size(); ++j)
+				{
+					all_info.push_back(to_use.at(j));
+				}
+			}
+			else if(special_case && (i == all_cmd.size()-1) && (to_use.size() == 1))
 			{
 				all_info.push_back(to_use.at(0));
 			}
@@ -133,16 +142,12 @@ void onlyleft(string command, bool hasright, string master)
 				}
 			}
 		}
-		char **argv = new char*[command_run.size()+all_info.size()+1];	//create an array of char pointers
-		for(unsigned int k = 0; k < command_run.size(); ++k)
-		{
-			argv[k] = const_cast<char*>((command_run.at(k)).c_str());	//this will allow us to use execvp 
-		}
+		char **argv = new char*[all_info.size()+1];	//create an array of char pointers
 		for(unsigned int k = 0; k < all_info.size(); ++k)
 		{
-			argv[command_run.size()+k] = const_cast<char*>((all_info.at(k)).c_str());	//this will allow us to use execvp
+			argv[k] = const_cast<char*>((all_info.at(k)).c_str());	//this will allow us to use execvp
 		}
-		argv[command_run.size()+all_info.size()] = 0;
+		argv[all_info.size()] = 0;
 		int pid = fork();
 		if(pid == -1)
 		{
@@ -151,7 +156,7 @@ void onlyleft(string command, bool hasright, string master)
 		}
 		else if(pid == 0)
 		{
-			if(-1 == execvp((command_run.at(0)).c_str(), argv))
+			if(-1 == execvp((all_info.at(0)).c_str(), argv))
 			{
 				perror("There was an error with execvp(). ");
 				_exit(1);
@@ -171,12 +176,13 @@ void onlyleft(string command, bool hasright, string master)
 	}
 	else
 	{
-		char **argv = new char*[command_run.size()+1];	//create an array of char pointers
-		for(unsigned int k = 0; k < command_run.size(); ++k)
+		all_info = all_cmd.at(0);
+		char **argv = new char*[all_info.size()+1];	//create an array of char pointers
+		for(unsigned int k = 0; k < all_info.size(); ++k)
 		{
-			argv[k] = const_cast<char*>((command_run.at(k)).c_str());	//this will allow us to use execvp 
+			argv[k] = const_cast<char*>((all_info.at(k)).c_str());	//this will allow us to use execvp 
 		}
-		argv[command_run.size()] = 0;
+		argv[all_info.size()] = 0;
 		int pid = fork();
 		if(pid == -1)
 		{
@@ -185,7 +191,7 @@ void onlyleft(string command, bool hasright, string master)
 		}
 		else if(pid == 0)
 		{
-			if(-1 == execvp((command_run.at(0)).c_str(), argv))
+			if(-1 == execvp((all_info.at(0)).c_str(), argv))
 			{
 				perror("There was an error with execvp(). ");
 				_exit(1);
@@ -203,7 +209,6 @@ void onlyleft(string command, bool hasright, string master)
 		}
 		delete []argv;
 	}
-	delete []cmd;
 	if(hasright)
 	{
 		if(-1 == close(write_to))
@@ -224,7 +229,44 @@ void onlyleft(string command, bool hasright, string master)
 	}
 }
 
-void onlyright(string command)
+string master_finder(string command)
+{
+	char *token;
+	char* cmd = new char[command.size()];
+	strcpy(cmd, command.c_str());
+	token = strtok(cmd, ">");
+	vector<string> holder;
+	while(token != NULL)
+	{
+		if(string(token).find_first_not_of(' ') != string::npos)
+		{
+			holder.push_back(string(token));
+		}
+		token = strtok(NULL, ">");
+	}
+	delete []cmd;
+	vector<vector<string> > all_cmd;
+	vector<string> to_use;
+	for(unsigned int i = 0; i < holder.size(); ++i)
+	{
+		trim(holder.at(i));
+		char* cmd = new char[holder.at(i).size()];
+		strcpy(cmd, (holder.at(i)).c_str());
+		token = strtok(cmd, " ");
+		while(token != NULL)
+		{
+			to_use.push_back(string(token));
+			token = strtok(NULL, " ");
+		}
+		all_cmd.push_back(to_use);
+		to_use.clear();
+		delete []cmd;
+	}
+	string temp = all_cmd.at(all_cmd.size()-1).at(0);
+	return temp;
+}
+
+void onlyright(string command, bool hasleft)
 {
 	char *token;
 	char* cmd = new char[command.size()];
@@ -316,10 +358,21 @@ void onlyright(string command)
 					exit(1);
 				}
 				int write_to;
-				if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+				if(hasleft)
 				{
-					perror("There was an error with open() .");
-					exit(1);
+					if(-1 == (write_to = open(master.c_str(), O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+					{
+						perror("There was an error with open() .");
+						exit(1);
+					}
+				}
+				else
+				{
+					if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+					{
+						perror("There was an error with open() .");
+						exit(1);
+					}
 				}
 				while(special_case)
 				{
@@ -408,10 +461,21 @@ void onlyright(string command)
 		exit(1);
 	}
 	int write_to;
-	if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+	if(hasleft)
 	{
-		perror("There was an error with open() .");
-		exit(1);
+		if(-1 == (write_to = open(master.c_str(), O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+		{
+			perror("There was an error with open() .");
+			exit(1);
+		}
+	}
+	else
+	{
+		if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+		{
+			perror("There was an error with open() .");
+			exit(1);
+		}
 	}
 	int pid = fork();
 	if(pid == -1)
@@ -450,22 +514,66 @@ void onlyright(string command)
 	}
 }
 
-void left_right_seperate(string command, string &left, string &right)
+bool file_exists(string &name)
 {
+	FILE *file;
+	if(NULL == (file = fopen(name.c_str(), "r")))
+	{
+		return false;
+	}
+	else
+	{
+		fclose(file);
+		return true;
+	}
+}
+
+void left_right_seperate(string command, string &left, string &right, string &master)
+{
+	bool finish = false;
+	string command_to_use;
+	for(unsigned int i = 0; i < command.size() && !finish; ++i)
+	{
+		if((command.at(i) == '<') || (command.at(i) == '>'))
+		{
+			command_to_use = command.substr(0, i);
+			finish = true;
+		}
+	}
 	char *token;
-	char* cmd = new char[command.size()];
-	strcpy(cmd, command.c_str());
+	char* cmd = new char[command_to_use.size()];
+	strcpy(cmd, (command_to_use).c_str());
 	vector<string> temp;
 	vector<string> left_commands;
 	vector<string> right_commands;
+	token = strtok(cmd, " ");
+	while(token != NULL)
+	{
+		temp.push_back(string(token));
+		token = strtok(NULL, " ");
+	}
+	delete []cmd;
+	string final;
+	for(unsigned int i = 0; i < temp.size(); ++i)
+	{
+		if(!file_exists(temp.at(i)))
+		{
+			final += temp.at(i);
+		}
+	}
+	temp.clear();
+	cmd = new char[command.size()];
+	strcpy(cmd, command.c_str());
 	token = strtok(cmd, "<");
 	while(token != NULL)
 	{
 		temp.push_back(string(token));
 		token = strtok(NULL, "<");
 	}
+	delete []cmd;
 	for(unsigned int i = 0; i < temp.size(); ++i)
 	{
+		cmd = new char[(temp.at(i)).size()];
 		strcpy(cmd, (temp.at(i)).c_str());
 		token = strtok(cmd, ">");
 		bool first = true;
@@ -482,6 +590,7 @@ void left_right_seperate(string command, string &left, string &right)
 			}
 			token = strtok(NULL, "<");
 		}
+		delete []cmd;
 	}
 	for(unsigned int i = 0; i < left_commands.size(); ++i)
 	{
@@ -491,6 +600,8 @@ void left_right_seperate(string command, string &left, string &right)
 			left += '<';
 		}
 	}
+	right += final;
+	right += " >";
 	for(unsigned int i = 0; i < right_commands.size(); ++i)
 	{
 		right += right_commands.at(i);
@@ -499,7 +610,7 @@ void left_right_seperate(string command, string &left, string &right)
 			right += '>';
 		}
 	}
-	delete []cmd;
+	master = master_finder(right);
 }
 
 void orfinder(string filter, vector<string> &take)
@@ -606,8 +717,10 @@ void normalBash(string command)
 	{
 		copy.push_back(command);
 	}
+	delete []cmd;
 	if(copy.size() > 0)
 	{
+		cmd = new char[(copy.at(0)).size()];
 		strcpy(cmd, (copy.at(0)).c_str()); 
 		copy.clear();
 		token = strtok(cmd, ";");
@@ -616,8 +729,10 @@ void normalBash(string command)
 			sc_cmd.push_back(string(token)); //parse the string, looking for semicolons to split the commands
 			token = strtok(NULL, ";");
 		}
+		delete []cmd;
 		for(unsigned int i = 0; i < sc_cmd.size(); ++i)
 		{
+			cmd = new char[(sc_cmd.at(i)).size()];
 			strcpy(cmd, (sc_cmd.at(i)).c_str());
 			token = strtok(cmd, "#");		//parse the string looking for the start of a comment
 			if(token != NULL)		//then only add the beginning part of the command and throw away everything after the #
@@ -627,6 +742,7 @@ void normalBash(string command)
 					copy.push_back(string(token));	
 				}
 			}
+			delete []cmd;
 		}
 		sc_cmd.clear();
 		for(unsigned int i = 0; i < copy.size(); ++i)
@@ -644,6 +760,7 @@ void normalBash(string command)
 				trim(or_cmd.at(i));
 				if(fails == i)
 				{
+					cmd = new char[(or_cmd.at(i)).size()];
 					strcpy(cmd, (or_cmd.at(i)).c_str());
 					token = strtok(cmd, "&&");
 					while(token != NULL)	//parse the string command for && and split the code down to single commands
@@ -651,6 +768,7 @@ void normalBash(string command)
 						and_cmd.push_back(string(token));
 						token = strtok(NULL, "&&");
 					}
+					delete []cmd;
 					unsigned int trues = 0;
 					for(unsigned int i = 0; i < and_cmd.size(); ++i) //keep doing && commands as long as the last command succeeded
 					{
@@ -662,6 +780,7 @@ void normalBash(string command)
 						finder(and_cmd.at(i), haspipe, hasleft, has2right, hasright);
 						if(trues == i)
 						{
+							cmd = new char[(and_cmd.at(i)).size()];
 							strcpy(cmd, (and_cmd.at(i)).c_str());
 							token = strtok(cmd, " ");
 							while(token != NULL)	//break down the command into strings
@@ -669,6 +788,7 @@ void normalBash(string command)
 								copy.push_back(string(token));
 								token = strtok(NULL, " ");
 							}
+							delete []cmd;
 							char **argv = new char*[copy.size()+1];	//create an array of char pointers
 							for(unsigned int j = 0; j < copy.size(); ++j)
 							{
@@ -687,10 +807,10 @@ void normalBash(string command)
 								{
 									if(haspipe || hasleft || has2right || hasright)
 									{
-										cout << "I/O redirection" << endl;
+										/*cout << "I/O redirection" << endl;
 										if(hasright && !haspipe && !hasleft && !has2right)
 										{
-											onlyright(and_cmd.at(i));
+											onlyright(and_cmd.at(i), hasleft);
 										}
 										else if(hasleft && !hasright && !haspipe && !has2right)
 										{
@@ -700,17 +820,21 @@ void normalBash(string command)
 										{
 											string left;
 											string right;
-											left_right_seperate(and_cmd.at(i), left, right);
+											string master_file;
+											left_right_seperate(and_cmd.at(i), left, right, master_file);
+											cout << master_file << endl;
 											cout << left << endl;
 											cout << right << endl;
-										}
+											onlyleft(left, hasright, master_file);
+											onlyright(right, hasleft);
+										}*/
 										_exit(0);
 									}
 									else
 									{	
 										if(-1 == execvp((copy.at(0)).c_str(), argv))
 										{
-											perror("There was an error with execvp() ");	
+											perror("Therie was an error with execvp() ");	
 											_exit(1);	//if the command failed, then kill the child process and exit
 										}
 									}
@@ -734,14 +858,37 @@ void normalBash(string command)
 								}
 								if(and_cmd.at(i) == "exit")	//if the user entered the exit command, end the shell and program
 								{
-									delete []argv;		//since we are done with the program early, we must delete
-									delete []cmd;		//dynamic memory from leaking out
+									delete []argv;		//since we are done with the program early, we must delete memory
 									copy.clear();
 									and_cmd.clear();
 									or_cmd.clear();
 									sc_cmd.clear();
 									done = true;	
 									return;
+								}
+								if(hasright || haspipe || hasleft || has2right)
+								{
+									cout<< "I/O redirection" << endl;
+									if(hasright && !haspipe && !hasleft && !has2right)
+									{
+										onlyright(and_cmd.at(i), hasleft);
+									}
+									else if(hasleft && !hasright && !haspipe && !has2right)
+									{
+										onlyleft(and_cmd.at(i), hasright, "");
+									}
+									else if(hasleft && hasright && !haspipe && !has2right)
+									{
+										string left;
+										string right;
+										string master_file;
+										left_right_seperate(and_cmd.at(i), left, right, master_file);
+										cout << master_file << endl;
+										cout << left << endl;
+										cout << right << endl;
+										onlyleft(left, hasright, master_file);
+										onlyright(right, hasleft);
+									}
 								}
 							}
 							delete []argv;	//make sure to delete the dynamically allocated memory
@@ -760,7 +907,6 @@ void normalBash(string command)
 		}	//end of sc_cmd
 		sc_cmd.clear();	//clear out the commands in the semicolon vector since we are done
 	}
-	delete []cmd;//make sure to delete the dynamically allocated memory
 }
 
 int main()
