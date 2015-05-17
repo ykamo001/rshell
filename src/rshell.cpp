@@ -266,7 +266,7 @@ string master_finder(string command)
 	return temp;
 }
 
-void onlyright(string command, bool hasleft)
+void onlyright(string command, bool hasleft, bool has2right)
 {
 	char *token;
 	char* cmd = new char[command.size()];
@@ -358,7 +358,7 @@ void onlyright(string command, bool hasleft)
 					exit(1);
 				}
 				int write_to;
-				if(hasleft)
+				if(hasleft || has2right)
 				{
 					if(-1 == (write_to = open(master.c_str(), O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
 					{
@@ -461,7 +461,7 @@ void onlyright(string command, bool hasleft)
 		exit(1);
 	}
 	int write_to;
-	if(hasleft)
+	if(hasleft || has2right)
 	{
 		if(-1 == (write_to = open(master.c_str(), O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
 		{
@@ -807,10 +807,10 @@ void normalBash(string command)
 								{
 									if(haspipe || hasleft || has2right || hasright)
 									{
-										/*cout << "I/O redirection" << endl;
+										cout << "I/O redirection" << endl;
 										if(hasright && !haspipe && !hasleft && !has2right)
 										{
-											onlyright(and_cmd.at(i), hasleft);
+											onlyright(and_cmd.at(i), hasleft, has2right);
 										}
 										else if(hasleft && !hasright && !haspipe && !has2right)
 										{
@@ -826,8 +826,12 @@ void normalBash(string command)
 											cout << left << endl;
 											cout << right << endl;
 											onlyleft(left, hasright, master_file);
-											onlyright(right, hasleft);
-										}*/
+											onlyright(right, hasleft, has2right);
+										}
+										else if(has2right && !hasleft && !hasright && !haspipe)
+										{
+											onlyright(and_cmd.at(i), hasleft, has2right);
+										}
 										_exit(0);
 									}
 									else
@@ -865,30 +869,6 @@ void normalBash(string command)
 									sc_cmd.clear();
 									done = true;	
 									return;
-								}
-								if(hasright || haspipe || hasleft || has2right)
-								{
-									cout<< "I/O redirection" << endl;
-									if(hasright && !haspipe && !hasleft && !has2right)
-									{
-										onlyright(and_cmd.at(i), hasleft);
-									}
-									else if(hasleft && !hasright && !haspipe && !has2right)
-									{
-										onlyleft(and_cmd.at(i), hasright, "");
-									}
-									else if(hasleft && hasright && !haspipe && !has2right)
-									{
-										string left;
-										string right;
-										string master_file;
-										left_right_seperate(and_cmd.at(i), left, right, master_file);
-										cout << master_file << endl;
-										cout << left << endl;
-										cout << right << endl;
-										onlyleft(left, hasright, master_file);
-										onlyright(right, hasleft);
-									}
 								}
 							}
 							delete []argv;	//make sure to delete the dynamically allocated memory
