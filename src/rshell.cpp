@@ -528,13 +528,13 @@ bool file_exists(string &name)
 	}
 }
 
-void left_right_seperate(string command, string &left, string &right, string &master)
+void left_right_seperate(string command, string &left, string &right, string &master, string &final)
 {
 	bool finish = false;
 	string command_to_use;
-	for(unsigned int i = 0; i < command.size() && !finish; ++i)
+	for(unsigned int i = 0; i < command.size()-1 && !finish; ++i)
 	{
-		if((command.at(i) == '<') || (command.at(i) == '>'))
+		if((command.at(i) == '<') || (command.at(i) == '>') || ((command.at(i) == '>') && (command.at(i+1) == '>')))
 		{
 			command_to_use = command.substr(0, i);
 			finish = true;
@@ -553,7 +553,6 @@ void left_right_seperate(string command, string &left, string &right, string &ma
 		token = strtok(NULL, " ");
 	}
 	delete []cmd;
-	string final;
 	for(unsigned int i = 0; i < temp.size(); ++i)
 	{
 		if(!file_exists(temp.at(i)))
@@ -597,7 +596,7 @@ void left_right_seperate(string command, string &left, string &right, string &ma
 		left += left_commands.at(i);
 		if(i != left_commands.size()-1)
 		{
-			left += '<';
+			left += " <";
 		}
 	}
 	right += final;
@@ -613,7 +612,7 @@ void left_right_seperate(string command, string &left, string &right, string &ma
 	master = master_finder(right);
 }
 
-void orfinder(string filter, vector<string> &take)
+void orfinder(string filter, vector<string> &take, char match)
 {
 	unsigned int start = 0;
 	unsigned int cut = 0;
@@ -625,12 +624,12 @@ void orfinder(string filter, vector<string> &take)
 	{
 		for(unsigned int i = start; i <= filter.size()-2 && !complete; ++i)
 		{
-			if((filter.at(i) == '|') && (filter.at(i+1) == '|'))
+			if((filter.at(i) == match) && (filter.at(i+1) == match))
 			{
 				copy = copy.substr(start, cut);
 				trim(copy);
 				take.push_back(copy);
-				while(i < filter.size() && filter.at(i) == '|')
+				while(i < filter.size() && filter.at(i) == match)
 				{
 					++i;
 				}
@@ -705,6 +704,43 @@ void finder(const string search, bool &haspipe, bool &hasleft, bool &has2right, 
 	haspipe = charfinder('|', search);
 }
 
+void double_right_parse(string command, vector<string> &doubleright, string &word)
+{
+	vector<string> divided;
+	orfinder(command, divided, '>');
+	vector<string> rest;
+	rest.push_back(divided.at(0));
+	for(unsigned int i = 1; i < divided.size(); ++i)
+	{
+		string temp = divided.at(i);
+		bool finish = false;
+		bool over = false;
+		for(unsigned int j = 0; j < temp.size() && !finish; ++j)
+		{
+			if((temp.at(j) == '>') || (temp.at(j) == '<'))
+			{
+				temp = temp.substr(0, j);
+				doubleright.push_back(temp);
+				temp = divided.at(i);
+				temp = temp.substr(j, temp.size()-j);
+				rest.push_back(temp);
+				finish = true;
+			}
+			if(j == temp.size()-1)
+			{
+				over = true;
+			}
+		}
+		if(over)
+		{
+			doubleright.push_back(temp);
+		}
+	}
+	for(unsigned int i = 0; i < rest.size(); ++i)
+	{
+		word += rest.at(i);
+	}
+}
 void normalBash(string command)
 {
 	char *token;
@@ -753,7 +789,7 @@ void normalBash(string command)
 		for(unsigned int i = 0; i < sc_cmd.size(); ++i)	//keep executing these commands regardless of result from previous command
 		{
 			trim(sc_cmd.at(i));		//remove all the unnecessary white spaces around the string if in there
-			orfinder(sc_cmd.at(i), or_cmd);
+			orfinder(sc_cmd.at(i), or_cmd, '|');
 			unsigned int fails = 0;
 			for(unsigned int i = 0; i < or_cmd.size(); ++i)	//keep doing || commands as long as the last command failed
 			{
@@ -821,16 +857,38 @@ void normalBash(string command)
 											string left;
 											string right;
 											string master_file;
-											left_right_seperate(and_cmd.at(i), left, right, master_file);
-											cout << master_file << endl;
-											cout << left << endl;
-											cout << right << endl;
+											string do_not_need;
+											left_right_seperate(and_cmd.at(i), left, right, master_file, do_not_need);
 											onlyleft(left, hasright, master_file);
 											onlyright(right, hasleft, has2right);
 										}
 										else if(has2right && !hasleft && !hasright && !haspipe)
 										{
 											onlyright(and_cmd.at(i), hasleft, has2right);
+										}
+										else if((hasleft || hasright) && has2right && !haspipe)
+										{
+											vector<string> doubleright;
+											string word;
+											double_right_parse(and_cmd.at(i), doubleright, word);
+											string left;
+											string right;
+											string master_file;
+											string need_command;
+											left_right_seperate(word, left, right, master_file, need_command);
+											need_command += " >> ";
+											for(unsigned int m = 0; m < doubleright.size(); ++m)
+											{
+												need_command += doubleright.at(m);
+												if(m < doubleright.size()-1)
+												{
+													need_command += " >> ";
+												}
+											}
+											cout << master_file << endl;
+											cout << left << endl;
+											cout << right << endl;
+											cout << need_command << endl;
 										}
 										_exit(0);
 									}
