@@ -852,7 +852,10 @@ void piping(string command)
 	token = strtok(cmd, "|");
 	while(token != NULL)
 	{
-		parsed.push_back(string(token));
+		if(string(token).find_first_not_of(' ') != string::npos)
+		{
+			parsed.push_back(string(token));
+		}
 		token = strtok(NULL, "|");
 	}
 	delete []cmd;
