@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <cstring>
+#include <wait.h>
 #include <vector>
 #include <fcntl.h>
 #include <cstdlib>
@@ -19,7 +20,7 @@ using namespace boost;
 
 bool done = false;
 
-void onlyleft(string command, bool hasright, string master)
+void onlyleft(string command, bool hasright, bool haspipe, string master)
 {
 	char *token;
 	char* cmd = new char[command.size()];
@@ -36,34 +37,40 @@ void onlyleft(string command, bool hasright, string master)
 	}
 	delete []cmd;
 	int savestdin;
-	if(-1 == (savestdin = dup(0)))
+	if(!haspipe)
 	{
-		perror("There was an error with dup(). ");
-		exit(1);
-	}
-	if(-1 == close(0))
-	{
-		perror("There was an error with close(). ");
-		exit(1);
-	}
-	int savestdout;
-	int write_to;
-	if(hasright)
-	{
-		if(-1 == (savestdout = dup(1)))
+		if(-1 == (savestdin = dup(0)))
 		{
 			perror("There was an error with dup(). ");
 			exit(1);
 		}
-		if(-1 == close(1))
+		if(-1 == close(0))
 		{
 			perror("There was an error with close(). ");
 			exit(1);
 		}
-		if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+	}
+	int savestdout;
+	int write_to;
+	if(!haspipe)
+	{
+		if(hasright)
 		{
-			perror("There was an error with open() .");
-			exit(1);
+			if(-1 == (savestdout = dup(1)))
+			{
+				perror("There was an error with dup(). ");
+				exit(1);
+			}
+			if(-1 == close(1))
+			{
+				perror("There was an error with close(). ");
+				exit(1);
+			}
+			if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+			{
+				perror("There was an error with open() .");
+				exit(1);
+			}
 		}
 	}
 	vector<vector<string> > all_cmd;
@@ -209,23 +216,26 @@ void onlyleft(string command, bool hasright, string master)
 		}
 		delete []argv;
 	}
-	if(hasright)
+	if(!haspipe)
 	{
-		if(-1 == close(write_to))
+		if(hasright)
 		{
-			perror("There was an error with close(). ");
-			exit(1);
+			if(-1 == close(write_to))
+			{
+				perror("There was an error with close(). ");
+				exit(1);
+			}
+			if(-1 == dup2(savestdout, 1))
+			{
+				perror("There was an error with dup2(). ");
+				exit(1);
+			}
 		}
-		if(-1 == dup2(savestdout, 1))
+		if(-1 == dup2(savestdin, 0))
 		{
 			perror("There was an error with dup2(). ");
 			exit(1);
 		}
-	}
-	if(-1 == dup2(savestdin, 0))
-	{
-		perror("There was an error with dup2(). ");
-		exit(1);
 	}
 }
 
@@ -745,8 +755,75 @@ void double_right_parse(string command, vector<string> &doubleright, string &wor
 	}
 }
 
+void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool haspipe)
+{
+	if(hasright && !hasleft && !has2right)
+	{
+		onlyright(command, hasleft, has2right);
+	}
+	else if(hasleft && !hasright && !has2right)
+	{
+		onlyleft(command, hasright, haspipe, "");
+	}
+	else if(hasleft && hasright && !has2right)
+	{
+		string left;
+		string right;
+		string master_file;
+		string do_not_need;
+		left_right_seperate(command, left, right, master_file, do_not_need);
+		onlyleft(left, hasright, haspipe, master_file);
+		onlyright(right, hasleft, has2right);
+	}
+	else if(has2right && !hasleft && !hasright)
+	{
+		onlyright(command, hasleft, has2right);
+	}
+	else if((hasleft || hasright) && has2right)
+	{
+		vector<string> doubleright;
+		string word;
+		double_right_parse(command, doubleright, word);
+		string left;
+		string right;
+		string master_file;
+		string need_command;
+		left_right_seperate(word, left, right, master_file, need_command);
+		need_command += " >> ";
+		for(unsigned int m = 0; m < doubleright.size(); ++m)
+		{
+			need_command += doubleright.at(m);
+			if(m < doubleright.size()-1)
+			{
+				need_command += " >> ";
+			}
+		}
+		if(hasleft && !hasright)
+		{
+			onlyleft(left, hasright, haspipe, master_file);
+			onlyright(need_command, hasleft, has2right);
+		}
+		else if(!hasleft && hasright)
+		{
+			onlyright(right, hasleft, false);
+			need_command += " ";
+			need_command += master_file;
+			onlyright(need_command, hasleft, has2right);
+		}
+		else
+		{
+			onlyleft(left, hasright, haspipe, master_file);
+			onlyright(right, hasleft, has2right);
+			need_command += " ";
+			need_command += master_file;
+			onlyright(need_command, hasleft, has2right);
+		}
+	}
+}
+
 void piping(string command)
 {
+	vector<int> PIDS;
 	char *token;
 	char* cmd = new char[command.size()];
 	vector<string> parsed;
@@ -758,28 +835,17 @@ void piping(string command)
 		token = strtok(NULL, "|");
 	}
 	delete []cmd;
-	vector<vector<string> > all_diff;
-	vector<string> temp;
-	for(unsigned int i = 0; i < parsed.size(); ++i)
+	int savestdout;
+	if(-1 == (savestdout = dup(1)))
 	{
-		cmd = new char[(parsed.at(i)).size()];
-		strcpy(cmd, (parsed.at(i)).c_str());
-		token = strtok(cmd, " ");
-		while(token != NULL)
-		{
-			temp.push_back(string(token));
-			token = strtok(NULL, " ");
-		}
-		all_diff.push_back(temp);
-		delete []cmd;
-		temp.clear();
+		perror("There was an error with dup(). ");
+		exit(1);
 	}
 	const int PIPE_READ = 0;
 	const int PIPE_WRITE = 1;
-	temp.clear();
-	struct pipe_holder{ int fd[2]; };
+	struct pipe_holder {int fd[2]; };
 	vector<pipe_holder> pipes;
-	for(unsigned int i = 0; i < all_diff.size()-1; ++i)
+	for(unsigned int i = 0; i < parsed.size(); ++i)
 	{
 		int fd[2];
 		pipe_holder fdHold;
@@ -794,17 +860,12 @@ void piping(string command)
 		}
 		pipes.push_back(fdHold);
 	}
-	for(unsigned int i = 0; i < all_diff.size(); ++i)
+	for(unsigned int i = 0; i < parsed.size(); ++i)
 	{
-		temp = all_diff.at(i)
-		char **argv = new char*[temp.size()+1];	//create an array of char pointers
-		for(unsigned int j = 0; j < temp.size(); ++j)
-		{
-			trim(temp.at(j));	//add char pointers into an array of pointers
-			argv[j] = const_cast<char*>((temp.at(j)).c_str());	//this will allow us to use execvp 
-		}
-		argv[copy.size()] = 0;
+		int status = 0;
 		int pid = fork();
+		PIDS.push_back(pid);
+		bool keep_going = false;
 		if(-1 == pid)
 		{
 			perror("There was an error with fork(). ");
@@ -814,32 +875,128 @@ void piping(string command)
 		{
 			if(i == 0)
 			{
-				if(-1 == dup2(pipes.at(i).fd[PIPE_WRITE], 1))
+				if(-1 == dup2(pipes[i].fd[PIPE_WRITE], 1))
 				{
 					perror("There was an error with dup2(). ");
 					exit(1);
 				}
-				if(-1 == close(pipes.at(i).fd[PIPE_READ]))
+				if(-1 == close(pipes[i].fd[PIPE_READ]))
 				{
 					perror("There was an error with close(). ");
 					exit(1);
 				}
 			}
-			else if((i > 0) && ((i+1) > all_cmd.size()))
+			else if((i > 0) && ((i+1) < parsed.size()))
 			{
-				//if(-1 == dup2(
+				if(-1 == dup2(pipes[i].fd[PIPE_WRITE], 1))
+				{
+					perror("There was an error with dup2(). ");
+					exit(1);
+				}
+				if(-1 == close(pipes[i].fd[PIPE_READ]))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
+				if(-1 == dup2(pipes[i-1].fd[PIPE_READ], 0))
+				{
+					perror("There was an error with dup2(). ");
+					exit(1);
+				}
+				if(-1 == close(pipes[i-1].fd[PIPE_WRITE]))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
 			}
-			if(-1 == execvp((temp.at(0)).c_str(), argv))
+			else if((i > 0) && ((i+1) >= parsed.size())) 
 			{
-				perror("There was an error with execvp(). ");
-				exit(1);
+				if(-1 == dup2(savestdout, 1))
+				{
+					perror("There was an error with dup2(). ");
+					exit(1);
+				}
+				if(-1 == dup2(pipes[i-1].fd[PIPE_READ], 0))
+				{
+					perror("There was an error with dup2(). ");
+					exit(1);
+				}
+				if(-1 == close(pipes[i-1].fd[PIPE_WRITE]))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
 			}
+			bool haspipe = false;
+			bool hasleft = false;
+			bool has2right = false;
+			bool hasright = false;
+			finder(parsed.at(i), haspipe, hasleft, has2right, hasright);
+			haspipe = true;
+			if(hasleft || hasright || has2right)
+			{
+				otherBash(parsed.at(i), hasleft, hasright, has2right, haspipe);
+			}
+			else
+			{
+				vector<string> temp;
+				cmd = new char[(parsed.at(i)).size()];
+				strcpy(cmd, (parsed.at(i)).c_str());
+				token = strtok(cmd, " ");
+				while(token != NULL)
+				{
+					temp.push_back(string(token));
+					token = strtok(NULL, " ");
+				}
+				delete []cmd;
+				char **argv = new char*[temp.size()+1];	//create an array of char pointers
+				for(unsigned int j = 0; j < temp.size(); ++j)
+				{
+					trim(temp.at(j));	//add char pointers into an array of pointers
+					argv[j] = const_cast<char*>((temp.at(j)).c_str());	//this will allow us to use execvp 
+				}
+				argv[temp.size()] = 0;
+				if(-1 == execvp((temp.at(0)).c_str(), argv))
+				{
+					perror("There was an error with execvp(). ");
+					exit(1);
+				}
+				delete []argv;
+			}
+			_exit(1);
 		}
 		else
 		{
-			if(i == all_cmd.size()-1)
+			if(i != 0)
 			{
-
+				if(-1 == close(pipes[i-1].fd[PIPE_READ]))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
+				if(-1 == close(pipes[i-1].fd[PIPE_WRITE]))
+				{
+					perror("There was an error with close(). ");
+					exit(1);
+				}
+			}
+			if((i+1) < parsed.size())
+			{
+				keep_going = true;
+			}
+			else if(((i+1) >= parsed.size()) && !keep_going)
+			{
+				for(unsigned int y = 0; y < PIDS.size(); ++y)
+				{
+					if(-1 == waitpid(PIDS[y], &status, WUNTRACED))
+					{
+						perror("There was an error with waitpid(). ");
+						exit(1);
+					}
+				}
+			}
+		}
+	}
 }
 
 void normalBash(string command)
@@ -942,78 +1099,24 @@ void normalBash(string command)
 							{
 								if(and_cmd.at(i) != "exit")	//only move along to execvp if the command is not exit
 								{
-									if(haspipe || hasleft || has2right || hasright)
+									if(haspipe || hasleft || hasright || has2right)
 									{
-										cout << "I/O redirection" << endl;
-										if(hasright && !haspipe && !hasleft && !has2right)
-										{
-											onlyright(and_cmd.at(i), hasleft, has2right);
+										if(!haspipe)
+										{	
+											otherBash(and_cmd.at(i), hasleft, hasright, has2right, haspipe);
+											_exit(0);
 										}
-										else if(hasleft && !hasright && !haspipe && !has2right)
+										else
 										{
-											onlyleft(and_cmd.at(i), hasright, "");
+											piping(and_cmd.at(i));
+											_exit(0);
 										}
-										else if(hasleft && hasright && !haspipe && !has2right)
-										{
-											string left;
-											string right;
-											string master_file;
-											string do_not_need;
-											left_right_seperate(and_cmd.at(i), left, right, master_file, do_not_need);
-											onlyleft(left, hasright, master_file);
-											onlyright(right, hasleft, has2right);
-										}
-										else if(has2right && !hasleft && !hasright && !haspipe)
-										{
-											onlyright(and_cmd.at(i), hasleft, has2right);
-										}
-										else if((hasleft || hasright) && has2right && !haspipe)
-										{
-											vector<string> doubleright;
-											string word;
-											double_right_parse(and_cmd.at(i), doubleright, word);
-											string left;
-											string right;
-											string master_file;
-											string need_command;
-											left_right_seperate(word, left, right, master_file, need_command);
-											need_command += " >> ";
-											for(unsigned int m = 0; m < doubleright.size(); ++m)
-											{
-												need_command += doubleright.at(m);
-												if(m < doubleright.size()-1)
-												{
-													need_command += " >> ";
-												}
-											}
-											if(hasleft && !hasright)
-											{
-												onlyleft(left, hasright, master_file);
-												onlyright(need_command, hasleft, has2right);
-											}
-											else if(!hasleft && hasright)
-											{
-												onlyright(right, hasleft, false);
-												need_command += " ";
-												need_command += master_file;
-												onlyright(need_command, hasleft, has2right);
-											}
-											else
-											{
-												onlyleft(left, hasright, master_file);
-												onlyright(right, hasleft, has2right);
-												need_command += " ";
-												need_command += master_file;
-												onlyright(need_command, hasleft, has2right);
-											}
-										}
-										_exit(0);
 									}
 									else
 									{	
 										if(-1 == execvp((copy.at(0)).c_str(), argv))
 										{
-											perror("Therie was an error with execvp() ");	
+											perror("There was an error with execvp() ");	
 											_exit(1);	//if the command failed, then kill the child process and exit
 										}
 									}
