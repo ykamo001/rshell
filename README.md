@@ -97,3 +97,6 @@ by `ctrl+c`, but will also cause `rshell` to terminate.
 
 17. If an I/O command fails, then it will not execute any command connector by `||`, the program will think it is a success; therefore
 even if an I/O command failed, it will go on to execute the commands connected by `&&`, as it is a success. 
+
+18. Adding comments to the I/O command line will cause program to terminate, but is not affected in piping stand-alone, or if I/O
+is implemented with piping.
