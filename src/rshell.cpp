@@ -276,8 +276,22 @@ string master_finder(string command)
 	return temp;
 }
 
-void onlyright(string command, bool hasleft, bool has2right)
+void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 {
+	int savestdin;
+	if(haspipe)
+	{
+		if(-1 == (savestdin = dup(0)))
+		{
+			perror("There was an error with dup(). ");
+			exit(1);
+		}
+		if(-1 == close(0))
+		{
+			perror("There was an error with close(). ");
+			exit(1);
+		}
+	}
 	char *token;
 	char* cmd = new char[command.size()];
 	strcpy(cmd, command.c_str());
@@ -437,7 +451,7 @@ void onlyright(string command, bool hasleft, bool has2right)
 				}
 				else
 				{
-					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_CREAT | O_RDONLY, S_IRUSR | S_IWUSR)))
+					if(-1 == (read_from = open((to_use.at(k)).c_str(), O_RDONLY, S_IRUSR | S_IWUSR)))
 					{
 						perror("There was an error with open(). ");
 						exit(1);
@@ -521,6 +535,13 @@ void onlyright(string command, bool hasleft, bool has2right)
 	{
 		perror("There was an error with dup2(). ");
 		exit(1);
+	}
+	if(haspipe)
+	{
+		if(-1 == dup2(savestdin, 0))
+		{
+			perror("There was an error with dup2(). ");
+		}
 	}
 }
 
@@ -759,7 +780,7 @@ void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool
 {
 	if(hasright && !hasleft && !has2right)
 	{
-		onlyright(command, hasleft, has2right);
+		onlyright(command, hasleft, has2right, haspipe);
 	}
 	else if(hasleft && !hasright && !has2right)
 	{
@@ -773,11 +794,11 @@ void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool
 		string do_not_need;
 		left_right_seperate(command, left, right, master_file, do_not_need);
 		onlyleft(left, hasright, haspipe, master_file);
-		onlyright(right, hasleft, has2right);
+		onlyright(right, hasleft, has2right, haspipe);
 	}
 	else if(has2right && !hasleft && !hasright)
 	{
-		onlyright(command, hasleft, has2right);
+		onlyright(command, hasleft, has2right, haspipe);
 	}
 	else if((hasleft || hasright) && has2right)
 	{
@@ -801,22 +822,22 @@ void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool
 		if(hasleft && !hasright)
 		{
 			onlyleft(left, hasright, haspipe, master_file);
-			onlyright(need_command, hasleft, has2right);
+			onlyright(need_command, hasleft, has2right, haspipe);
 		}
 		else if(!hasleft && hasright)
 		{
-			onlyright(right, hasleft, false);
+			onlyright(right, hasleft, false, haspipe);
 			need_command += " ";
 			need_command += master_file;
-			onlyright(need_command, hasleft, has2right);
+			onlyright(need_command, hasleft, has2right, haspipe);
 		}
 		else
 		{
 			onlyleft(left, hasright, haspipe, master_file);
-			onlyright(right, hasleft, has2right);
+			onlyright(right, hasleft, has2right, haspipe);
 			need_command += " ";
 			need_command += master_file;
-			onlyright(need_command, hasleft, has2right);
+			onlyright(need_command, hasleft, has2right, haspipe);
 		}
 	}
 }
