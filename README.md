@@ -76,3 +76,24 @@ went wrong.
 
 10. If there is a soft link to another file, when running `ls -l` there will be no indication of which file it points to, i.e. 
 you will not see the output of `-> filename`.
+
+###Piping and I/O Redirection
+11. Solely for I/O redirection, order of commands entered will not matter. Program will effectively separate inputted command and execute 
+all input redirection first, i.e `<`, then will implement all output redirection, i.e `>`, and finally run all `>>` commands. This may,
+depending on the inputted command, cause result to be not as expected or executed like bash.
+
+12. Adding excessive white-space in the command will increase the chances of the program **NOT** crashing or producing error.
+
+13. The command `echo < file1 file2 file3` will definitely cause the program to abort and produce errors. This can be fixed by placing any
+extra amount of white-space anywhere in the command after `echo` and before `file3`. If any command causes program to abort, using more 
+white-space may fix error.
+
+14. Running the command `cat > file1` will land you in an infinite loop to enter whatever you like to be put into `file1`, and can be ended
+by `ctrl+c`, but will also cause `rshell` to terminate. 
+
+15. Running big commands will cause program to produce memory map error and may abort, depending on the length and command.
+
+16. Piping and I/O both use extensive heap allocation and may cause memory errors to occur. 
+
+17. If an I/O command fails, then it will not execute any command connector by `||`, the program will think it is a success; therefore
+even if an I/O command failed, it will go on to execute the commands connected by `&&`, as it is a success. 
