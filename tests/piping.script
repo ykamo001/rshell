@@ -1,0 +1,490 @@
+Script started on Sun 17 May 2015 08:46:52 PM PDT
+~
+ykamo001@hammer $ cs100
+[0;91m
+===============================================================================
+|                                                                             |
+| You have enabled settings specific for cs100.  Everything you do is being   |
+| recorded to measure your progress in the class.                             |
+|                                                                             |
+| Important commands for the class:                                           |
+|   * calcgrade.sh          displays a detailed breakdown of your grade       |
+|   * checksyscalls.sh      is your cpp file doing proper error checking?     |
+|   * typespeed             practice typing unix commands                     |
+|                                                                             |
+| Important commands for general C++ programming:                             |
+|   * make                  don't call g++ manually; let make do the work!    |
+|   * gdb                   the GNU debugger                                  |
+|   * valgrind              get rid of your memory leaks                      |
+|   * cppcheck              static analysis tool                              |
+|   * man                   find help about any syscall / terminal command    |
+|                                                                             |
+===============================================================================
+[0m
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~[0;95m [0;36m$[0m cd CS100/t[Krshell/
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~/CS100/rshell[0;95m (redirect) [0;36m$[0m bin/rshell 
+ykamo001@hammer.cs.ucr.edu $ #lets test output redirection first
+ykamo001@hammer.cs.ucr.edu $ cat file1 > file3 2 file3
+ykamo001@hammer.cs.ucr.edu $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file1
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file1 > file2 file3  file4    > file5
+ykamo001@hammer.cs.ucr.edu $ c #we can see that s white space does not affect it
+ykamo001@hammer.cs.ucr.edu $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file2
+ykamo001@hammer.cs.ucr.edu $ cat file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file5
+file1
+file3
+file4
+ykamo001@hammer.cs.ucr.edu $ cat>file     fil    file1>file2 file3            file4>      >file4
+ykamo001@hammer.cs.ucr.edu $ #we can wee t     see that no spaces is alo so okay
+ykamo001@hammer.cs.ucr.edu $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file1
+file3
+ykamo001@hammer.cs.ucr.edu $ #lets try a different command to see if it accepts all
+ykamo001@hammer.cs.ucr.edu $ ls -l > file1 file2 file3 file4 file5
+ykamo001@hammer.cs.ucr.edu $ cat file1
+-rw------- 1 ykamo001 csmajs  0 May 17 20:42 file2
+-rw------- 1 ykamo001 csmajs  6 May 17 20:37 file3
+-rw------- 1 ykamo001 csmajs 12 May 17 20:42 file4
+-rw------- 1 ykamo001 csmajs 18 May 17 20:41 file5
+ykamo001@hammer.cs.ucr.edu $ cat file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file1
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file5
+file1
+file3
+file4
+ykamo001@hammer.cs.ucr.edu $ #lets reset the files and then try              by using input redirection
+ykamo001@hammer.cs.ucr.edu $ #i mean output redirection
+ykamo001@hammer.cs.ucr.edu $ echo file1 > file1
+ykamo001@hammer.cs.ucr.edu $ echo i file2 > file2
+ykamo001@hammer.cs.ucr.edu $ echo file4   3 > file3
+ykamo001@hammer.cs.ucr.edu $ echo file4 > file4
+ykamo001@hammer.cs.ucr.edu $ echo file5 > file5
+ykamo001@hammer.cs.ucr.edu $ #now lets test input redirection
+ykamo001@hammer.cs.ucr.edu $ c ls < file1 file2 file3 file4
+file2  file3  file4
+ykamo001@hammer.cs.ucr.edu $ cat file1 < file2 < fl ile3                <       file4< file    fi    <file5
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file5
+file5
+ykamo001@hammer.cs.ucr.edu $ echo hello world < file1 fil2   e2    < file3 file4 file5
+hello world file2 file4 file5
+ykamo001@hammer.cs.ucr.edu $ #now lets combine the two together
+ykamo001@hammer.cs.ucr.edu $ ls < file1 file2 file3  >  file1 file2 > file       file3   file4
+*** glibc detected *** bin/rshell: malloc(): memory corruption (fast): 0x0000000000d23670 ***
+======= Backtrace: =========
+/lib64/libc.so.6[0x3268075e66]
+/lib64/libc.so.6[0x3268079c3f]
+/lib64/libc.so.6(__libc_malloc+0x71)[0x326807a6b1]
+/usr/lib64/libstdc++.so.6(_Znwm+0x1d)[0x32708bd0bd]
+/usr/lib64/libstdc++.so.6(_ZNSs4_Rep9_S_createEmmRKSaIcE+0x59)[0x327089c3c9]
+/usr/lib64/libstdc++.so.6[0x327089cde5]
+/usr/lib64/libstdc++.so.6(_ZNSsC2EPKcRKSaIcE+0x43)[0x327089cf33]
+bin/rshell[0x402a87]
+bin/rshell[0x4043c5]
+bin/rshell[0x40516b]
+bin/rshell[0x40708a]
+bin/rshell[0x4076a0]
+/lib64/libc.so.6(__libc_start_main+0xfd)[0x326801ed5d]
+bin/rshell[0x401cd9]
+======= Memory map: ========
+00400000-00411000 r-xp 00000000 00:17 19776259                           /home/csmajs/ykamo001/CS100/rshell/bin/rshell
+00610000-00611000 rw-p 00010000 00:17 19776259                           /home/csmajs/ykamo001/CS100/rshell/bin/rshell
+00d21000-00d42000 rw-p 00000000 00:00 0                                  [heap]
+3267c00000-3267c20000 r-xp 00000000 08:01 13631494                       /lib64/ld-2.12.so
+3267e1f000-3267e20000 r--p 0001f000 08:01 13631494                       /lib64/ld-2.12.so
+3267e20000-3267e21000 rw-p 00020000 08:01 13631494                       /lib64/ld-2.12.so
+3267e21000-3267e22000 rw-p 00000000 00:00 0 
+3268000000-326818a000 r-xp 00000000 08:01 13631500                       /lib64/libc-2.12.so
+326818a000-326838a000 ---p 0018a000 08:01 13631500                       /lib64/libc-2.12.so
+326838a000-326838e000 r--p 0018a000 08:01 13631500                       /lib64/libc-2.12.so
+326838e000-326838f000 rw-p 0018e000 08:01 13631500                       /lib64/libc-2.12.so
+326838f000-3268394000 rw-p 00000000 00:00 0 
+3268400000-3268483000 r-xp 00000000 08:01 13631516                       /lib64/libm-2.12.so
+3268483000-3268682000 ---p 00083000 08:01 13631516                       /lib64/libm-2.12.so
+3268682000-3268683000 r--p 00082000 08:01 13631516                       /lib64/libm-2.12.so
+3268683000-3268684000 rw-p 00083000 08:01 13631516                       /lib64/libm-2.12.so
+326d800000-326d816000 r-xp 00000000 08:01 13631514                       /lib64/libgcc_s-4.4.7-20120601.so.1
+326d816000-326da15000 ---p 00016000 08:01 13631514                       /lib64/libgcc_s-4.4.7-20120601.so.1
+326da15000-326da16000 rw-p 00015000 08:01 13631514                       /lib64/libgcc_s-4.4.7-20120601.so.1
+3270800000-32708e8000 r-xp 00000000 08:01 9178736                        /usr/lib64/libstdc++.so.6.0.13
+32708e8000-3270ae8000 ---p 000e8000 08:01 9178736                        /usr/lib64/libstdc++.so.6.0.13
+3270ae8000-3270aef000 r--p 000e8000 08:01 9178736                        /usr/lib64/libstdc++.so.6.0.13
+3270aef000-3270af1000 rw-p 000ef000 08:01 9178736                        /usr/lib64/libstdc++.so.6.0.13
+3270af1000-3270b06000 rw-p 00000000 00:00 0 
+3277000000-3277016000 r-xp 00000000 08:01 13634447                       /lib64/libnsl-2.12.so
+3277016000-3277215000 ---p 00016000 08:01 13634447                       /lib64/libnsl-2.12.so
+3277215000-3277216000 r--p 00015000 08:01 13634447                       /lib64/libnsl-2.12.so
+3277216000-3277217000 rw-p 00016000 08:01 13634447                       /lib64/libnsl-2.12.so
+3277217000-3277219000 rw-p 00000000 00:00 0 
+7fe5507b2000-7fe5507bc000 r-xp 00000000 08:01 13631793                   /lib64/libnss_nis-2.12.so
+7fe5507bc000-7fe5509bb000 ---p 0000a000 08:01 13631793                   /lib64/libnss_nis-2.12.so
+7fe5509bb000-7fe5509bc000 r--p 00009000 08:01 13631793                   /lib64/libnss_nis-2.12.so
+7fe5509bc000-7fe5509bd000 rw-p 0000a000 08:01 13631793                   /lib64/libnss_nis-2.12.so
+7fe5509bd000-7fe5509c9000 r-xp 00000000 08:01 13634403                   /lib64/libnss_files-2.12.so
+7fe5509c9000-7fe550bc9000 ---p 0000c000 08:01 13634403                   /lib64/libnss_files-2.12.so
+7fe550bc9000-7fe550bca000 r--p 0000c000 08:01 13634403                   /lib64/libnss_files-2.12.so
+7fe550bca000-7fe550bcb000 rw-p 0000d000 08:01 13634403                   /lib64/libnss_files-2.12.so
+7fe550bcb000-7fe550bd0000 rw-p 00000000 00:00 0 
+7fe550be5000-7fe550be6000 rw-p 00000000 00:00 0 
+7fe550be6000-7fe550be9000 rw-p 00000000 00:00 0 
+7fff55d87000-7fff55d9d000 rw-p 00000000 00:00 0                          [stack]
+7fff55dff000-7fff55e00000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+ykamo001@hammer.cs.ucr.edu $ #as we can see, big commands will end up breaking the program
+ykamo001@hammer.cs.ucr.edu $ #but i/o still works together, lets try again
+ykamo001@hammer.cs.ucr.edu $ ls -l > file1 file2   <  file3 file 4  4
+ykamo001@hammer.cs.ucr.edu $ cat file1
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file4
+ykamo001@hammer.cs.ucr.edu $ #lets try the append command now
+ykamo001@hammer.cs.ucr.edu $ cat file1 >> file2
+ykamo001@hammer.cs.ucr.edu $ cat file1
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+ykamo001@hammer.cs.ucr.edu $ cat file3 2
+file2
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+ykamo001@hammer.cs.ucr.edu $ #lets tru   y mult tiple appens ds
+ykamo001@hammer.cs.ucr.edu $ fi  cat file1 >> file2 >> file         >>   file3    >>      >>file4 file5
+ykamo001@hammer.cs.ucr.edu $ cat file1
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+ykamo001@hammer.cs.ucr.edu $ cat file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+file5
+ykamo001@hammer.cs.ucr.edu $ cat file5
+file5
+ykamo001@hammer.cs.ucr.edu $ #lets try output and append together
+ykamo001@hammer.cs.ucr.edu $ cat file1 > file2   >>   file3 file4
+file2
+^C
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~/CS100/rshell[0;95m (redirect) [0;36m$[0m bin/rshell 
+ykamo001@hammer.cs.ucr.edu $ cat file1
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+file5
+ykamo001@hammer.cs.ucr.edu $ cat file1 > file2 file3 >> file            >>   file3   file4  >>    file5
+ykamo001@hammer.cs.ucr.edu $ cat file1
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+ykamo001@hammer.cs.ucr.edu $ cat file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+ykamo001@hammer.cs.ucr.edu $ cat file3 4
+file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+file5
+ykamo001@hammer.cs.ucr.edu $ cat file5
+file5
+file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file4
+-rw------- 1 ykamo001 csmajs 6 May 17 20:44 file2
+file5
+ykamo001@hammer.cs.ucr.edu $ #lets rest et and then try input with append
+ykamo001@hammer.cs.ucr.edu $ echo file1 > file1
+ykamo001@hammer.cs.ucr.edu $ echo file3 2 > fil3 e2
+ykamo001@hammer.cs.ucr.edu $ echo fil3 >     e3 > file3
+ykamo001@hammer.cs.ucr.edu $ echo file4 > file4
+ykamo001@hammer.cs.ucr.edu $ echo file5 > file5
+ykamo001@hammer.cs.ucr.edu $ echo file6 > file6
+ykamo001@hammer.cs.ucr.edu $ cat <   file1 < file2   <  file3 file4   >> file5 file6   >> file7
+file1
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file2
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file3
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file5
+ykamo001@hammer.cs.ucr.edu $ cat file6
+file6
+ykamo001@hammer.cs.ucr.edu $ cat file7
+file7
+file6
+ykamo001@hammer.cs.ucr.edu $ #lets try all of the three together
+ykamo001@hammer.cs.ucr.edu $ cat file1 < file2  >  file33  file 4  4  >> file5
+ykamo001@hammer.cs.ucr.edu $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file1
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file4
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file5
+file1
+file4
+ykamo001@hammer.cs.ucr.edu $ #now that w  e know i/o works, let's reset and           move onto piping
+ykamo001@hammer.cs.ucr.edu $ ls > file1
+ykamo001@hammer.cs.ucr.edu $ ls -l > file2
+ykamo001@hammer.cs.ucr.edu $ cat file1 | tr a-z A_Z  -Z | tee testfile | tail >           
+BIN
+FILE1
+FILE2
+FILE3
+FILE4
+FILE5
+FILE6
+FILE7
+LICENSE
+MAKEFILE
+README.MD
+SRC
+TESTS
+ykamo001@hammer.cs.ucr.edu $ cat file1
+bin
+file1
+file2
+file3
+file4
+file5
+file6
+file7
+LICENSE
+Makefile
+README.md
+src
+tests
+ykamo001@hammer.cs.ucr.edu $ ls
+bin  file1  file2  file3  file4  file5	file6  file7  LICENSE  Makefile  README.md  src  testfile  tests
+ykamo001@hammer.cs.ucr.edu $ cat testfile
+BIN
+FILE1
+FILE2
+FILE3
+FILE4
+FILE5
+FILE6
+FILE7
+LICENSE
+MAKEFILE
+README.MD
+SRC
+TESTS
+ykamo001@hammer.cs.ucr.edu $ cat file2             |              tr  sort    head  
+total 32
+drwx------ 2 ykamo001 csmajs 4096 May 17 20:32 bin
+-rw------- 1 ykamo001 csmajs   83 May 17 20:56 file1
+-rw------- 1 ykamo001 csmajs    0 May 17 20:56 file2
+-rw------- 1 ykamo001 csmajs   12 May 17 20:55 file3
+-rw------- 1 ykamo001 csmajs    6 May 17 20:54 file4
+-rw------- 1 ykamo001 csmajs   12 May 17 20:55 file5
+-rw------- 1 ykamo001 csmajs    6 May 17 20:54 file6
+-rw------- 1 ykamo001 csmajs   12 May 17 20:54 file7
+-rw------- 1 ykamo001 csmajs 1473 Apr 13 10:11 LICENSE
+ykamo001@hammer.cs.ucr.edu $ cat file2
+total 32
+drwx------ 2 ykamo001 csmajs 4096 May 17 20:32 bin
+-rw------- 1 ykamo001 csmajs   83 May 17 20:56 file1
+-rw------- 1 ykamo001 csmajs    0 May 17 20:56 file2
+-rw------- 1 ykamo001 csmajs   12 May 17 20:55 file3
+-rw------- 1 ykamo001 csmajs    6 May 17 20:54 file4
+-rw------- 1 ykamo001 csmajs   12 May 17 20:55 file5
+-rw------- 1 ykamo001 csmajs    6 May 17 20:54 file6
+-rw------- 1 ykamo001 csmajs   12 May 17 20:54 file7
+-rw------- 1 ykamo001 csmajs 1473 Apr 13 10:11 LICENSE
+-rw------- 1 ykamo001 csmajs  542 May 17 16:30 Makefile
+-rw------- 1 ykamo001 csmajs 6297 May 17 20:39 README.md
+drwx------ 2 ykamo001 csmajs 4096 May 17 20:14 src
+drwx------ 2 ykamo001 csmajs 4096 May 17 20:40 tests
+ykamo001@hammer.cs.ucr.edu $ #so we know spacing and whites  space wil   is okay
+ykamo001@hammer.cs.ucr.edu $ #we all so know that multiple piping is okay
+ykamo001@hammer.cs.ucr.edu $ #lets combing e some i/o with piping
+ykamo001@hammer.cs.ucr.edu $ cat < testfile | tr a-z   A-Z a-z | tee newtestfile | tr a-z A-z Z > newts est2
+hello world thi  s ia a   s a test
+^C
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~/CS100/rshell[0;95m (redirect) [0;36m$[0m bin/rshell 
+ykamo001@hammer.cs.ucr.edu $ cat file    testfile
+BIN
+FILE1
+FILE2
+FILE3
+FILE4
+FILE5
+FILE6
+FILE7
+LICENSE
+MAKEFILE
+README.MD
+SRC
+TESTS
+ykamo001@hammer.cs.ucr.edu $ cat     ls
+bin  file1  file2  file3  file4  file5	file6  file7  LICENSE  Makefile  newtest2  newtestfile	README.md  src	testfile  tests
+ykamo001@hammer.cs.ucr.edu $ cat news testfile
+bin
+file1
+file2
+file3
+file4
+file5
+file6
+file7
+license
+makefile
+readme.md
+src
+tests
+ykamo001@hammer.cs.ucr.edu $ cat newtest2
+ykamo001@hammer.cs.ucr.edu $ cat < test file     file | tr A-Z a-z | tee newtestfile | tr a-z A-Z > newtest2 file2
+tr: extra operand `file2'
+Try `tr --help' for more information.
+ykamo001@hammer.cs.ucr.edu $ #we know not only that we can combing i/o, but that errors will also properly print
+ykamo001@hammer.cs.ucr.edu $ cat file1 > file2 file3   > file4 | tail | echo < hell  o world
+world
+ykamo001@hammer.cs.ucr.edu $ cat file1
+bin
+file1
+file2
+file3
+file4
+file5
+file6
+file7
+LICENSE
+Makefile
+README.md
+src
+tests
+ykamo001@hammer.cs.ucr.edu $ cat file2
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file1
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file4
+bin
+file1
+file2
+file3
+file4
+file5
+file6
+file7
+LICENSE
+Makefile
+README.md
+src
+tests
+file1
+file4
+ykamo001@hammer.cs.ucr.edu $ ls
+bin  file1  file2  file3  file4  file5	file6  file7  LICENSE  Makefile  newtest2  newtestfile	README.md  src	testfile  tests
+ykamo001@hammer.cs.ucr.edu $ rm < newtest2 newtestfile testfile
+ykamo001@hammer.cs.ucr.edu $ ls
+bin  file1  file2  file3  file4  file5	file6  file7  LICENSE  Makefile  newtest2  README.md  src  tests
+ykamo001@hammer.cs.ucr.edu $ cat     echo file1 > file1 && cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ #we can see the i/o can be used with connectors
+ykamo001@hammer.cs.ucr.edu $ ls -l | tr a-z A-Z | head &&  || echo hello world
+TOTAL 32
+DRWX------ 2 YKAMO001 CSMAJS 4096 MAY 17 20:32 BIN
+-RW------- 1 YKAMO001 CSMAJS    6 MAY 17 21:04 FILE1
+-RW------- 1 YKAMO001 CSMAJS    0 MAY 17 21:02 FILE2
+-RW------- 1 YKAMO001 CSMAJS   12 MAY 17 20:55 FILE3
+-RW------- 1 YKAMO001 CSMAJS   95 MAY 17 21:02 FILE4
+-RW------- 1 YKAMO001 CSMAJS   12 MAY 17 20:55 FILE5
+-RW------- 1 YKAMO001 CSMAJS    6 MAY 17 20:54 FILE6
+-RW------- 1 YKAMO001 CSMAJS   12 MAY 17 20:54 FILE7
+-RW------- 1 YKAMO001 CSMAJS 1473 APR 13 10:11 LICENSE
+ykamo001@hammer.cs.ucr.edu $ #we see that piping also works with connectors
+ykamo001@hammer.cs.ucr.edu $ cat file1 > fil2 e2 file3    &&         echo hello world | grep world
+hello world
+ykamo001@hammer.cs.ucr.edu $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file1
+file1
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file3
+file1
+file4
+ykamo001@hammer.cs.ucr.edu $ cat file1 > >  > > > > >            >
+rshell: syntax error 
+ykamo001@hammer.cs.ucr.edu $ cat file1 <    <             <    <
+rshell: syntax error 
+ykamo001@hammer.cs.ucr.edu $ cat >>  file1 >>                   >>                  >>    >>
+rshell: syntax error 
+ykamo001@hammer.cs.ucr.edu $ ls -l   |  |   |   ||      
+ykamo001@hammer.cs.ucr.edu $ cate    test file     file > file2 file 3  3
+cat: testfile: No such file or directory
+ykamo001@hammer.cs.ucr.edu $ #we c see the error e checking is happening
+ykamo001@hammer.cs.ucr.edu $ ls > file1 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> file2
+ykamo001@hammer.cs.ucr.edu $ cat file1
+bin
+file1
+file2
+file3
+file4
+file5
+file6
+file7
+LICENSE
+Makefile
+newtest2
+README.md
+src
+tests
+ykamo001@hammer.cs.ucr.edu $ cat file2
+file1
+file4
+file1
+ykamo001@hammer.cs.ucr.edu $ #excessive co  i/o redictors will not hinder
+ykamo001@hammer.cs.ucr.edu $ exit
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~/CS100/rshell[0;95m (redirect) [0;36m$[0m exit
+exit
+~
+ykamo001@hammer $ exit
+exit
+
+Script done on Sun 17 May 2015 09:16:53 PM PDT
