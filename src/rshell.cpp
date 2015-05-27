@@ -10,7 +10,9 @@
 #include <vector>
 #include <fcntl.h>
 #include <cstdlib>
+#include <stdlib.h>
 #include <errno.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string.hpp>
@@ -778,10 +780,162 @@ void double_right_parse(string command, vector<string> &doubleright, string &wor
 	}
 }
 
-//void cd_code(vector<string> goto_path)
-//{
-	
-//}
+int cd_code(vector<string> goto_path)
+{
+	cout << "currWD: " << currWD << endl;
+	cout << "lastWD: " << lastWD << endl;
+	cout << endl;
+	if(goto_path.size() > 1)
+	{
+		if(goto_path.at(1) == "-")
+		{
+			if(-1 == chdir(lastWD))
+			{
+				perror("There was an error with chdir(). ");
+				return -1;
+			}
+			char *temp = currWD;
+			currWD = lastWD;
+			lastWD = temp;
+			if(-1 == setenv("PWD", currWD, 1))
+			{
+				perror("There was an error with setenv(). ");
+				return -1;
+			}
+			if(-1 == setenv("OLDPWD", lastWD, 1))
+			{
+				perror("There was an error with setenv(). ");
+				return -1;
+			}
+			cout << currWD << endl;
+		}
+		else if(goto_path.at(1) == ".")
+		{
+			lastWD = currWD;
+			if(-1 == setenv("PWD", currWD, 1))
+			{
+				perror("There was an error with setenv(). ");
+				return -1;
+			}
+			if(-1 == setenv("OLDPWD", lastWD, 1))
+			{
+				perror("There was an error with setenv(). ");
+				return -1;
+			}
+		}
+		else if(goto_path.at(1) == "..")
+		{
+			string temp = string(currWD);
+			int loc = temp.find_last_of("/");
+			temp = temp.substr(0, loc);
+			if(-1 == chdir(temp.c_str()))
+			{
+				perror("There was an error with chdir(). ");
+				return -1;
+			}
+			lastWD = currWD;
+			currWD = const_cast<char*>(temp.c_str());
+			if(-1 == setenv("PWD", currWD, 1))
+			{
+				perror("There was an error with setenv(). ");
+				return -1;
+			}
+			if(-1 == setenv("OLDPWD", lastWD, 1))
+			{
+				perror("There was an error with setenv(). ");
+				return -1;
+			}
+		}
+		else
+		{
+			char* temp = getenv("HOME");
+			if(temp == NULL)
+			{
+				perror("There was an error with getenv(). ");
+				return -1;
+			}
+			string checker = string(temp);
+			unsigned int loc = (goto_path.at(1)).find_first_of(checker);
+			if(loc == string::npos)
+			{
+				checker = string(currWD);
+				checker += "/";
+				checker += goto_path.at(1);
+				if(-1 == chdir(checker.c_str()))
+				{
+					perror("There was an error with chdir(). ");
+					return -1;
+				}
+				lastWD = currWD;
+				currWD = const_cast<char*>(checker.c_str());
+				if(-1 == setenv("PWD", currWD, 1))
+				{
+					perror("There was an error with setenv(). ");
+					return -1;
+				}
+				if(-1 == setenv("OLDPWD", lastWD, 1))
+				{
+					perror("There was an error with setenv(). ");
+					return -1;
+				}
+			}
+			else
+			{
+				char *temp2 = const_cast<char*>((goto_path.at(1)).c_str());
+				if(-1 == chdir(temp2))
+				{
+					perror("There was an error with chdir(). ");
+					return -1;
+				}
+				lastWD = currWD;
+				currWD = temp2;
+				if(-1 == setenv("PWD", currWD, 1))
+				{
+					perror("There was an error with setenv(). ");
+					return -1;
+				}
+				if(-1 == setenv("OLDPWD", lastWD, 1))
+				{
+					perror("There was an error with setenv(). ");
+					return -1;
+				}
+			}
+		}
+	}
+	else if(goto_path.size() == 1)
+	{
+		char *temp = getenv("HOME");
+		if(temp == NULL)
+		{
+			perror("There was an error with getenv(). ");
+			return -1;
+		}
+		if(-1 == chdir(temp))
+		{
+			perror("There was an error with chdir(). ");
+			return -1;
+		}
+		lastWD = currWD;
+		currWD = temp;
+		if(-1 == setenv("PWD", currWD, 1))
+		{
+			perror("There was an error with setenv(). ");
+			return -1;
+		}
+		if(-1 == setenv("OLDPWD", lastWD, 1))
+		{
+			perror("There was an error with setenv(). ");
+			return -1;
+		}
+	}
+	cout << "currWD: " << currWD << endl;
+	cout << "lastWD: " << lastWD << endl;
+	cout << endl;
+
+	cout << "pwd: " << getenv("PWD") << endl;
+	cout << "oldpwd: " << getenv("OLDPWD") << endl;
+	return 0;
+}
 
 void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool haspipe)
 {
@@ -1128,8 +1282,8 @@ void normalBash(string command)
 							}
 							else if(pid == 0)
 							{
-								if(and_cmd.at(i) != "exit")	//only move along to execvp if the command is not exit
-								{
+								if((and_cmd.at(i) != "exit") && (copy.at(0) != "cd"))
+								{	//only move along to execvp if the command is not exit
 									if(haspipe || hasleft || hasright || has2right)
 									{
 										if(!haspipe)
@@ -1145,18 +1299,10 @@ void normalBash(string command)
 									}
 									else
 									{	
-										if(copy.at(0) == "cd")
+										if(-1 == execvp((copy.at(0)).c_str(), argv))
 										{
-											cout << "Do special code" << endl;
-											_exit(0);
-										}
-										else
-										{
-											if(-1 == execvp((copy.at(0)).c_str(), argv))
-											{
-												perror("There was an error with execvp() ");	
-												_exit(1);	//if the command failed, then kill the child process and exit
-											}
+											perror("There was an error with execvp() ");	
+											_exit(1);	//if the command failed, then kill the child process and exit
 										}
 									}
 								}
@@ -1187,6 +1333,15 @@ void normalBash(string command)
 									done = true;	
 									return;
 								}
+								if(copy.at(0) == "cd")
+								{
+									int cd_check;
+									cd_check = cd_code(copy);
+									if(cd_check == -1)
+									{
+										trues--;
+									}
+								}
 							}
 							delete []argv;	//make sure to delete the dynamically allocated memory
 						}
@@ -1208,18 +1363,16 @@ void normalBash(string command)
 
 int main()
 {
-	currWD = getenv("PWD");
-	if(currWD == NULL)
+	char *cwd;
+	char buff[PATH_MAX + 1];
+	cwd = getcwd(buff, PATH_MAX + 1);
+	if(cwd == NULL)
 	{
-		perror("There was an error with getenv(). ");
+		perror("There was an error with getcwd(). ");
 	}
-
-	lastWD = getenv("OLDPWD");
-	if(lastWD == NULL)
-	{
-		perror("There was an error with getenv(). ");
-	}
-
+	currWD = cwd;
+	lastWD = currWD;
+	string the_wd;
 	char *user = getlogin();	//gets the user name
 	string command;
 	if(user == NULL)
@@ -1234,9 +1387,10 @@ int main()
 	}
 	while(!done)		//loop until user enters exit and the loop is terminated
 	{
+		the_wd = string(currWD);
 		if((user != NULL) && (check == 0))
 		{
-			cout << user << "@" << name << " $ ";	//output user name, @ symbol, the host name, followed by $
+			cout << user << "@" << name << ":" << the_wd << " $ ";	//output user name, @ symbol, the host name, followed by $
 		}			// output at this point should result in: [user]@[host]$
 		else
 		{
