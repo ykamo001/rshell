@@ -19,6 +19,8 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
+char *currWD;
+char *lastWD;
 
 void onlyleft(string command, bool hasright, bool haspipe, string master)
 {
@@ -776,6 +778,11 @@ void double_right_parse(string command, vector<string> &doubleright, string &wor
 	}
 }
 
+//void cd_code(vector<string> goto_path)
+//{
+	
+//}
+
 void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool haspipe)
 {
 	if(hasright && !hasleft && !has2right)
@@ -1138,10 +1145,18 @@ void normalBash(string command)
 									}
 									else
 									{	
-										if(-1 == execvp((copy.at(0)).c_str(), argv))
+										if(copy.at(0) == "cd")
 										{
-											perror("There was an error with execvp() ");	
-											_exit(1);	//if the command failed, then kill the child process and exit
+											cout << "Do special code" << endl;
+											_exit(0);
+										}
+										else
+										{
+											if(-1 == execvp((copy.at(0)).c_str(), argv))
+											{
+												perror("There was an error with execvp() ");	
+												_exit(1);	//if the command failed, then kill the child process and exit
+											}
 										}
 									}
 								}
@@ -1193,6 +1208,18 @@ void normalBash(string command)
 
 int main()
 {
+	currWD = getenv("PWD");
+	if(currWD == NULL)
+	{
+		perror("There was an error with getenv(). ");
+	}
+
+	lastWD = getenv("OLDPWD");
+	if(lastWD == NULL)
+	{
+		perror("There was an error with getenv(). ");
+	}
+
 	char *user = getlogin();	//gets the user name
 	string command;
 	if(user == NULL)
