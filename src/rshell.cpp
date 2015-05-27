@@ -21,8 +21,6 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
-char *currWD;
-char *lastWD;
 
 void onlyleft(string command, bool hasright, bool haspipe, string master)
 {
@@ -782,9 +780,19 @@ void double_right_parse(string command, vector<string> &doubleright, string &wor
 
 int cd_code(vector<string> goto_path)
 {
-	cout << "currWD: " << currWD << endl;
-	cout << "lastWD: " << lastWD << endl;
-	cout << endl;
+	char *currWD;
+	char buff[PATH_MAX + 1];
+	currWD  = getcwd(buff, PATH_MAX + 1);
+	if(currWD == NULL)
+	{
+		perror("There was an error with getcwd(). ");
+	}
+	char *lastWD = getenv("OLDPWD");
+	if(lastWD == NULL)
+	{
+		perror("There was an error with getenv(). ");
+		return -1;
+	}
 	if(goto_path.size() > 1)
 	{
 		if(goto_path.at(1) == "-")
@@ -855,7 +863,7 @@ int cd_code(vector<string> goto_path)
 				return -1;
 			}
 			string checker = string(temp);
-			unsigned int loc = (goto_path.at(1)).find_first_of(checker);
+			size_t loc = (goto_path.at(1)).find(checker);
 			if(loc == string::npos)
 			{
 				checker = string(currWD);
@@ -928,12 +936,6 @@ int cd_code(vector<string> goto_path)
 			return -1;
 		}
 	}
-	cout << "currWD: " << currWD << endl;
-	cout << "lastWD: " << lastWD << endl;
-	cout << endl;
-
-	cout << "pwd: " << getenv("PWD") << endl;
-	cout << "oldpwd: " << getenv("OLDPWD") << endl;
 	return 0;
 }
 
@@ -1363,16 +1365,6 @@ void normalBash(string command)
 
 int main()
 {
-	char *cwd;
-	char buff[PATH_MAX + 1];
-	cwd = getcwd(buff, PATH_MAX + 1);
-	if(cwd == NULL)
-	{
-		perror("There was an error with getcwd(). ");
-	}
-	currWD = cwd;
-	lastWD = currWD;
-	string the_wd;
 	char *user = getlogin();	//gets the user name
 	string command;
 	if(user == NULL)
@@ -1387,7 +1379,15 @@ int main()
 	}
 	while(!done)		//loop until user enters exit and the loop is terminated
 	{
-		the_wd = string(currWD);
+		char *cwd;
+		char buff[PATH_MAX + 1];
+		cwd = getcwd(buff, PATH_MAX + 1);
+		if(cwd == NULL)
+		{
+			perror("There was an error with getcwd(). ");
+		}
+		string the_wd;
+		the_wd = string(cwd);
 		if((user != NULL) && (check == 0))
 		{
 			cout << user << "@" << name << ":" << the_wd << " $ ";	//output user name, @ symbol, the host name, followed by $
