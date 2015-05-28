@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string.hpp>
+#include <signal.h>
 
 using namespace std;
 using namespace boost;
@@ -1363,7 +1364,15 @@ void normalBash(string command)
 	}
 }
 
-int main()
+void handle_signal(int userSig)
+{
+	if(userSig == SIGINT)
+	{
+		cout << endl;
+	}
+}
+
+void user_interface()
 {
 	char *user = getlogin();	//gets the user name
 	string command;
@@ -1392,7 +1401,7 @@ int main()
 		if(temp == NULL)
 		{
 			perror("There was an error with getenv(). ");
-			return -1;
+			return;
 		}
 		string checker = string(temp);
 		size_t found = the_wd.find(checker);
@@ -1422,5 +1431,17 @@ int main()
 			normalBash(command);
 		}
 	}
+}
+
+int main()
+{
+	struct sigaction sig;
+	sig.sa_flags = SA_SIGINFO;
+	sig.sa_handler = handle_signal;
+	if(-1 == sigaction(SIGINT, &sig, NULL))
+	{
+		perror("There was an error with sigaction(). ");
+	}
+	user_interface();
 	return 0;
 }
