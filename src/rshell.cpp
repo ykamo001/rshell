@@ -1388,6 +1388,19 @@ int main()
 		}
 		string the_wd;
 		the_wd = string(cwd);
+		char* temp = getenv("HOME");
+		if(temp == NULL)
+		{
+			perror("There was an error with getenv(). ");
+			return -1;
+		}
+		string checker = string(temp);
+		size_t found = the_wd.find(checker);
+		if(found != string::npos)
+		{
+			the_wd = the_wd.substr(checker.size(), the_wd.size() - checker.size());
+			the_wd = "~" + the_wd;
+		}
 		if((user != NULL) && (check == 0))
 		{
 			cout << user << "@" << name << ":" << the_wd << " $ ";	//output user name, @ symbol, the host name, followed by $
