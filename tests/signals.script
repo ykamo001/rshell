@@ -1,0 +1,172 @@
+Script started on Fri 29 May 2015 09:42:51 PM PDT
+~
+ykamo001@hammer $ cs100
+[0;91m
+===============================================================================
+|                                                                             |
+| You have enabled settings specific for cs100.  Everything you do is being   |
+| recorded to measure your progress in the class.                             |
+|                                                                             |
+| Important commands for the class:                                           |
+|   * calcgrade.sh          displays a detailed breakdown of your grade       |
+|   * checksyscalls.sh      is your cpp file doing proper error checking?     |
+|   * typespeed             practice typing unix commands                     |
+|                                                                             |
+| Important commands for general C++ programming:                             |
+|   * make                  don't call g++ manually; let make do the work!    |
+|   * gdb                   the GNU debugger                                  |
+|   * valgrind              get rid of your memory leaks                      |
+|   * cppcheck              static analysis tool                              |
+|   * man                   find help about any syscall / terminal command    |
+|                                                                             |
+===============================================================================
+[0m
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~[0;95m [0;36m$[0m cd CS100/rshell/
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~/CS100/rshell[0;95m (cd) [0;36m$[0m c[Kbin/rshell 
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd #lets go to home
+ykamo001@hammer.cs.ucr.edu:~ $ cd - #lets go back
+/home/csmajs/ykamo001/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd .. #o go up one dir
+ykamo001@hammer.cs.ucr.edu:~/CS100 $ cd - #come back
+/home/csmajs/ykamo001/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd ~ / #tilda functionality
+ykamo001@hammer.cs.ucr.edu:~ $ cd ~/CS100/rshell #accepts any path
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd     _   -     #whitespace
+/home/csmajs/ykamo001
+ykamo001@hammer.cs.ucr.edu:~ $ c    cd  -
+/home/csmajs/ykamo001/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd ..    . #stay in current directory
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd - #it will say    tay here back last directory was same location
+/home/csmajs/ykamo001/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd .. ; cd    cd ~ ; cd ~/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #connectors work, l   we can check by checking last directory
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd -
+/home/csmajs/ykamo001
+ykamo001@hammer.cs.ucr.edu:~ $ #since we are in home dir, we can see it went there and came back
+ykamo001@hammer.cs.ucr.edu:~ $ cd -
+/home/csmajs/ykamo001/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd .. sfjlshdflsjdf #it only accepts first directory
+ykamo001@hammer.cs.ucr.edu:~/CS100 $ cd -       -    -df  dsf    sdfjsf #can enveter       ter anywhere
+/home/csmajs/ykamo001/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd sdfjksdf           ls
+bin  file1  file2  file3  file4  LICENSE  Makefile  README.md  src  tests
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ di  cd dirdoesnotexit || cd .. #it shoudl go up one dir since the last failed
+There was an error with chdir(). : No such file or directory
+ykamo001@hammer.cs.ucr.edu:~/CS100 $ cd - ; e pwd
+/home/csmajs/ykamo001/CS100/rshell
+/home/csmajs/ykamo001/CS100/rshell
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd ..       #noe w wa e see all connectors also workd 
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat
+hello
+hello
+world
+world
+^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ps
+  PID TTY          TIME CMD
+20617 pts/47   00:00:00 bash
+20629 pts/47   00:00:00 rshell
+23100 pts/47   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #since there are no som   zombies, this is good
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ sort
+hello
+world
+more
+tests
+^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #as     #it will only end the current command
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #in the promt pt it will only end     get a new prmot   ompt
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #no matter where^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #you type it                             ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat < fil     file1
+file1
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat < file1   > file2
+hello
+world
+this
+is
+an
+io
+test
+^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ps
+  PID TTY          TIME CMD
+20617 pts/47   00:00:00 bash
+20629 pts/47   00:00:00 rshell
+23600 pts/47   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat file2
+file1
+hello
+world
+this
+is
+an
+io
+test
+
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #the only bug is that it also includes the e last endl
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat file1 > file2
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat file2
+file1
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #all other commands still workd 
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat | cat file1
+file1
+hello world
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat file1
+file1
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ the piping also workd s
+There was an error with execvp() : No such file or directory
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #woops wo asnt an comm       comment
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ mkir  dir thisIsTemp
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cd thisIsTemp
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell/thisIsTemp $ #the cd workd   s with new dirs too
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell/thisIsTemp $ cd ..
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ps
+  PID TTY          TIME CMD
+20617 pts/47   00:00:00 bash
+20629 pts/47   00:00:00 rshell
+24116 pts/47   00:00:00 ps
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat                           >     file2
+hello world
+^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat file2
+hello world
+
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #whitespace doesnt amtter
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ e cat > filenothere
+hello world 
+this
+is
+test
+^C
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ ls
+bin  file1  file2  file3  file4  filenothere  LICENSE  Makefile  README.md  src  tests	thisIsTemp
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ cat filenotthere
+cat: filenotthere: No such file or directory
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ fi  cat filenothere
+hello world 
+this
+is
+test
+
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ #cat works wil th new files too
+ykamo001@hammer.cs.ucr.edu:~/CS100/rshell $ exit
+[s%%%%%%%%%%[u[0;32mykamo001[0;36m@[0;32mcs100[0;36m:[0;32m~/CS100/rshell[0;95m (cd) [0;36m$[0m exit
+exit
+~
+ykamo001@hammer $ exit
+exit
+
+Script done on Fri 29 May 2015 09:52:22 PM PDT
