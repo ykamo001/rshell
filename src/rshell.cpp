@@ -440,109 +440,6 @@ void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 						exit(1);
 					}
 				}
-				/*if(special_case)
-				{
-					if(-1 == close(write_to))
-					{
-						perror("There was an error with close(). ");
-						exit(1);
-					}
-					if(-1 == dup2(savestdout, 1))
-					{
-						perror("There was an error with dup2(). ");
-						exit(1);
-					}
-					if(-1 == (savestdin = dup(0)))
-					{
-						perror("There was an error with dup(). ");
-						exit(1);
-					}
-					int fd[2];
-					const int PIPE_READ = 0;
-					const int PIPE_WRITE = 1;
-					if(-1 == pipe(fd))
-					{
-						perror("There was an error with pipe(). ");
-						exit(1);
-					}
-					string tempcat = "cat";
-					char **argv = new char*[2];
-					argv[0] = const_cast<char*>(tempcat.c_str());
-					argv[1] = 0;
-					int pid = fork();
-					if(-1 == pid)
-					{
-						perror("There was an error with fork(). ");
-						exit(1);
-					}
-					else if(pid == 0)
-					{
-						if(-1 == dup2(fd[PIPE_WRITE], 1))
-						{
-							perror("There was an error with dup2(). ");
-							exit(1);
-						}
-						if(-1 == close(fd[PIPE_READ]))
-						{
-							perror("There was an error with close(). ");
-							exit(1);
-						}
-						if(-1 == execvp(tempcat.c_str(), argv))
-						{
-							perror("There was an error with execvp(). ");
-							_exit(1);
-						}
-					}
-					else
-					{
-						int status;
-						wait(&status);
-						if(status == -1)
-						{
-							perror("There was an error with wait() ");
-							exit(1);
-						}
-						delete []argv;
-						if(-1 == dup2(fd[PIPE_READ], 0))
-						{
-							perror("There was an error with dup2(). ");
-							exit(1);
-						}
-						if(-1 == close(fd[PIPE_WRITE]))
-						{
-							perror("There was an error with close(). ");
-							exit(1);
-						}
-						if(-1 == (write_to = open(master.c_str(), O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
-						{
-							perror("There was an error with open() .");
-							exit(1);
-						}
-						int size = 0;
-						char c[BUFSIZ];
-						if(-1 == (size = read(fd[PIPE_READ], &c, sizeof(c))))
-						{
-							perror("There was an error with read(). ");
-							exit(1);
-						}											
-						if(-1 == write(write_to, &c, size))
-						{
-							perror("There was an error with write(). ");
-							exit(1);
-						}
-						if(-1 == close(fd[PIPE_READ]))
-						{
-							perror("There was an error with close(). ");
-							exit(1);
-						}
-						if(-1 == dup2(savestdin, 0))
-						{
-							perror("There was an error with dup2(). ");
-							exit(1);
-						}
-						cat_special_used = true;
-					}
-				}*/
 				bool tempuse = false;
 				if(special_case)
 				{
@@ -1500,17 +1397,7 @@ void normalBash(string command)
 							else
 							{
 								int status;
-								//int wpid;
-								//do
-								//{
-									/*wpid = */wait(&status);
-								//}
-								//while(wpid == -1 && errno == EINTR);
-								//if (wpid == -1)
-								//{
-								//	perror("wait error");
-								//	exit(1); 
-								//}
+								wait(&status);
 								if(status == -1)
 								{
 									perror("There was an error with wait() ");
