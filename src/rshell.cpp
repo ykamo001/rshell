@@ -1033,6 +1033,14 @@ int cd_code(vector<string> goto_path)
 				return -1;
 			}
 			string checker = string(temp);
+			string replace;
+			if((goto_path.at(1)).at(0) == '~')
+			{
+				replace = (goto_path.at(1)).substr(1, (goto_path.at(1)).size()-1);
+				checker += "/";
+				checker += replace;
+				goto_path.at(1) = checker;
+			}
 			size_t loc = (goto_path.at(1)).find(checker);
 			if(loc == string::npos)
 			{
