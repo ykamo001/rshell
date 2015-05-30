@@ -24,6 +24,7 @@ using namespace boost;
 bool done = false;
 volatile bool take_command = true;
 volatile bool cat_special_used = false;
+volatile bool in_inf_cat = true;
 
 void handle_signal(int userSig)
 {
@@ -35,17 +36,32 @@ void handle_signal(int userSig)
 		}
 		else
 		{
-			cat_special_used = true;
-			int status;
-			wait(&status);
-			if(status == -1)
+			if(in_inf_cat)
 			{
-				perror("There was an error with wait() ");
-				exit(1);
+				cat_special_used = true;
+				int status;
+				wait(&status);
+				if(status == -1)
+				{
+					perror("There was an error with wait() ");
+					exit(1);
+				}
+			}
+			else
+			{	
+				int status;
+				wait(&status);
+				if(status == -1)
+				{
+					perror("There was an error with wait() ");
+					exit(1);
+				}
+				cout << endl;
 			}
 		}
 	}
 }
+
 void onlyleft(string command, bool hasright, bool haspipe, string master)
 {
 	char *token;
@@ -531,6 +547,7 @@ void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 				if(special_case)
 				{
 					tempuse = true;
+					in_inf_cat = true;
 				}
 				while(tempuse)
 				{
@@ -1095,6 +1112,7 @@ int cd_code(vector<string> goto_path)
 void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool haspipe)
 {
 	cat_special_used = false;
+	in_inf_cat = false;
 	if(hasright && !hasleft && !has2right)
 	{
 		onlyright(command, hasleft, has2right, haspipe);
@@ -1158,6 +1176,7 @@ void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool
 		}
 	}
 	cat_special_used = false;
+	in_inf_cat = false;
 }
 
 void piping(string command)
@@ -1432,6 +1451,8 @@ void normalBash(string command)
 								argv[j] = const_cast<char*>((copy.at(j)).c_str());	//this will allow us to use execvp 
 							}
 							argv[copy.size()] = 0;
+							cat_special_used = false;
+							in_inf_cat = false;
 							int pid = fork();
 							if(pid == -1)
 							{
@@ -1499,6 +1520,8 @@ void normalBash(string command)
 										trues--;
 									}
 								}
+								cat_special_used = false;
+								in_inf_cat = false;
 							}
 							delete []argv;	//make sure to delete the dynamically allocated memory
 						}
