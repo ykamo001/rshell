@@ -22,7 +22,30 @@ using namespace std;
 using namespace boost;
 
 bool done = false;
+volatile bool take_command = true;
+volatile bool cat_special_used = false;
 
+void handle_signal(int userSig)
+{
+	if(userSig == SIGINT)
+	{
+		if(take_command)
+		{
+			cout << endl;
+		}
+		else
+		{
+			cat_special_used = true;
+			int status;
+			wait(&status);
+			if(status == -1)
+			{
+				perror("There was an error with wait() ");
+				exit(1);
+			}
+		}
+	}
+}
 void onlyleft(string command, bool hasright, bool haspipe, string master)
 {
 	char *token;
@@ -401,7 +424,115 @@ void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 						exit(1);
 					}
 				}
-				while(special_case)
+				/*if(special_case)
+				{
+					if(-1 == close(write_to))
+					{
+						perror("There was an error with close(). ");
+						exit(1);
+					}
+					if(-1 == dup2(savestdout, 1))
+					{
+						perror("There was an error with dup2(). ");
+						exit(1);
+					}
+					if(-1 == (savestdin = dup(0)))
+					{
+						perror("There was an error with dup(). ");
+						exit(1);
+					}
+					int fd[2];
+					const int PIPE_READ = 0;
+					const int PIPE_WRITE = 1;
+					if(-1 == pipe(fd))
+					{
+						perror("There was an error with pipe(). ");
+						exit(1);
+					}
+					string tempcat = "cat";
+					char **argv = new char*[2];
+					argv[0] = const_cast<char*>(tempcat.c_str());
+					argv[1] = 0;
+					int pid = fork();
+					if(-1 == pid)
+					{
+						perror("There was an error with fork(). ");
+						exit(1);
+					}
+					else if(pid == 0)
+					{
+						if(-1 == dup2(fd[PIPE_WRITE], 1))
+						{
+							perror("There was an error with dup2(). ");
+							exit(1);
+						}
+						if(-1 == close(fd[PIPE_READ]))
+						{
+							perror("There was an error with close(). ");
+							exit(1);
+						}
+						if(-1 == execvp(tempcat.c_str(), argv))
+						{
+							perror("There was an error with execvp(). ");
+							_exit(1);
+						}
+					}
+					else
+					{
+						int status;
+						wait(&status);
+						if(status == -1)
+						{
+							perror("There was an error with wait() ");
+							exit(1);
+						}
+						delete []argv;
+						if(-1 == dup2(fd[PIPE_READ], 0))
+						{
+							perror("There was an error with dup2(). ");
+							exit(1);
+						}
+						if(-1 == close(fd[PIPE_WRITE]))
+						{
+							perror("There was an error with close(). ");
+							exit(1);
+						}
+						if(-1 == (write_to = open(master.c_str(), O_CREAT | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+						{
+							perror("There was an error with open() .");
+							exit(1);
+						}
+						int size = 0;
+						char c[BUFSIZ];
+						if(-1 == (size = read(fd[PIPE_READ], &c, sizeof(c))))
+						{
+							perror("There was an error with read(). ");
+							exit(1);
+						}											
+						if(-1 == write(write_to, &c, size))
+						{
+							perror("There was an error with write(). ");
+							exit(1);
+						}
+						if(-1 == close(fd[PIPE_READ]))
+						{
+							perror("There was an error with close(). ");
+							exit(1);
+						}
+						if(-1 == dup2(savestdin, 0))
+						{
+							perror("There was an error with dup2(). ");
+							exit(1);
+						}
+						cat_special_used = true;
+					}
+				}*/
+				bool tempuse = false;
+				if(special_case)
+				{
+					tempuse = true;
+				}
+				while(tempuse)
 				{
 					getline(cin, inputs);
 					inputs += '\n';
@@ -409,6 +540,10 @@ void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 					{
 						perror("There was an error with write(). ");
 						exit(1);
+					}
+					if(cat_special_used)
+					{
+						tempuse = false;
 					}
 				}
 				if(-1 == close(write_to))
@@ -496,12 +631,15 @@ void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 			exit(1);
 		}
 	}
-	else
+	else 
 	{
-		if(-1 == (write_to = open(master.c_str(), O_CREAT | O_TRUNC | O_APPEND | O_WRONLY, S_IRUSR | S_IWUSR)))
+		if(!cat_special_used)
 		{
-			perror("There was an error with open() .");
-			exit(1);
+			if(-1 == (write_to = open(master.c_str(), O_CREAT | O_APPEND | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR)))
+			{
+				perror("There was an error with open() .");
+				exit(1);
+			}
 		}
 	}
 	int pid = fork();
@@ -512,10 +650,17 @@ void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 	}
 	else if(pid == 0)
 	{
-		if(-1 == execvp((holder.at(0)).c_str(), argv))
+		if(!cat_special_used)
 		{
-			perror("There was an error with execvp(). ");
-			_exit(1);
+			if(-1 == execvp((holder.at(0)).c_str(), argv))
+			{
+				perror("There was an error with execvp(). ");
+				_exit(1);
+			}
+		}
+		else
+		{
+			_exit(0);
 		}
 	}
 	else
@@ -527,10 +672,17 @@ void onlyright(string command, bool hasleft, bool has2right, bool haspipe)
 			perror("There was an error with wait(). ");
 			exit(1);
 		}
-		if(-1 == close(write_to))
+		if(cat_special_used)
 		{
-			perror("There was an error with close(). ");
-			exit(1);
+			cat_special_used = false;
+		}
+		else
+		{
+			if(-1 == close(write_to))
+			{
+				perror("There was an error with close(). ");
+				exit(1);
+			}
 		}
 	}
 	delete []argv;
@@ -942,6 +1094,7 @@ int cd_code(vector<string> goto_path)
 
 void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool haspipe)
 {
+	cat_special_used = false;
 	if(hasright && !hasleft && !has2right)
 	{
 		onlyright(command, hasleft, has2right, haspipe);
@@ -1004,6 +1157,7 @@ void otherBash(string command, bool hasleft, bool hasright, bool has2right, bool
 			onlyright(need_command, hasleft, has2right, haspipe);
 		}
 	}
+	cat_special_used = false;
 }
 
 void piping(string command)
@@ -1364,14 +1518,6 @@ void normalBash(string command)
 	}
 }
 
-void handle_signal(int userSig)
-{
-	if(userSig == SIGINT)
-	{
-		cout << endl;
-	}
-}
-
 void user_interface()
 {
 	char *user = getlogin();	//gets the user name
@@ -1388,6 +1534,8 @@ void user_interface()
 	}
 	while(!done)		//loop until user enters exit and the loop is terminated
 	{
+		cin.clear();
+		take_command = true;
 		char *cwd;
 		char buff[PATH_MAX + 1];
 		cwd = getcwd(buff, PATH_MAX + 1);
@@ -1419,6 +1567,7 @@ void user_interface()
 			cout << "$ ";
 		}
 		getline(cin, command);	//get the entire line of command from user
+		take_command = false;
 		unsigned int loc = command.find_first_of("#");	//keep only everything before the first comment mark
 		command = command.substr(0, loc);
 		if(command == "exit")
