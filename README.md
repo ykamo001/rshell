@@ -100,3 +100,10 @@ even if an I/O command failed, it will go on to execute the commands connected b
 
 18. Adding comments to the I/O command line will cause program to terminate, but is not affected in piping stand-alone, or if I/O
 is implemented with piping.
+
+###Signals
+19. `^C` while in use of `cat` will also append an empty line to the end of the file
+
+20. `^C` with big, complex commands might cause zombie processes to remain while running `rshell`
+
+21. `^Z` will send `rshell` to the background
