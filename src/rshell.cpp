@@ -1500,7 +1500,17 @@ void normalBash(string command)
 							else
 							{
 								int status;
-								wait(&status);
+								//int wpid;
+								//do
+								//{
+									/*wpid = */wait(&status);
+								//}
+								//while(wpid == -1 && errno == EINTR);
+								//if (wpid == -1)
+								//{
+								//	perror("wait error");
+								//	exit(1); 
+								//}
 								if(status == -1)
 								{
 									perror("There was an error with wait() ");
