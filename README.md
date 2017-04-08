@@ -1,4 +1,4 @@
-#Rshell - A basic command shell
+# Rshell - A basic command shell
 Rshell, much like Bash, is a program that takes in the user input commands and executes them.
 In fact, Rshell is a more user-friendly version of Bash with some modifications and limitations.
 Please see the **Uses and Specifications** section first to understand how Rshell interprets commands
@@ -9,7 +9,7 @@ All bugs, errors, fixes, or modifications can be sent to ykamo001@ucr.edu.
 Reported bugs and errors will be handled as soon as possible and submitted for correctness.
 Modifications will be implemented based on evaluations of effectiveness.
 
-##Installing and Running
+## Installing and Running
 To get Rshell and run it, please open up a terminal and run these commands:
 ```
 git clone https://github.com/ykamo001/rshell.git
@@ -18,7 +18,7 @@ make
 bin/rshell
 ```
 
-##Uses and Specifications
+## Uses and Specifications
 1. To exit Rshell, simply enter in the command `exit` whenever you wish to exit.
 
 2. Supports the connectors `;` `&&` and `||`.
@@ -43,8 +43,8 @@ bin/rshell
 	If you must write comments, please do so at the very end of you entire command line, as such:
 	`ls -a && touch file.cpp ; cat file.cpp; exit #anything I type now will not be executed`
 
-##Bugs, Limitations, and Errors
-###Rshell
+## Bugs, Limitations, and Errors
+### Rshell
 1. Rshell does not differentiate between `&&` and `&`, and between `||` and `|`.
 
 2. Rshell  does not support i/o command such as `echo "Hello World" >> file.cpp` and will cause the program to terminate and crash.
@@ -64,7 +64,7 @@ time, in order to exit Rshell completely, you would need to execute `exit`, foll
 called, and finally executing `exit` one last time. This can lead to Rshell-ception and is not recommended, as you can easily lose track
 of which Rshell you are in.
 
-###ls
+### ls
 7. Running `ls` with the `-l` and/or `R` flag may cause unexpected output of 
 `do_ypcall: clnt_call: RPC: Unable to send; errno = Operation not permitted` to randomly appear. Program will still run and output
 everything as expected, except this, too, shall be there.
@@ -77,7 +77,7 @@ went wrong.
 10. If there is a soft link to another file, when running `ls -l` there will be no indication of which file it points to, i.e. 
 you will not see the output of `-> filename`.
 
-###Piping and I/O Redirection
+### Piping and I/O Redirection
 11. Solely for I/O redirection, order of commands entered will not matter. Program will effectively separate inputted command and execute 
 all input redirection first, i.e `<`, then will implement all output redirection, i.e `>`, and finally run all `>>` commands. This may,
 depending on the inputted command, cause result to be not as expected or executed like bash.
@@ -101,7 +101,7 @@ even if an I/O command failed, it will go on to execute the commands connected b
 18. Adding comments to the I/O command line will cause program to terminate, but is not affected in piping stand-alone, or if I/O
 is implemented with piping.
 
-###Signals
+### Signals
 19. `^C` while in use of `cat` will also append an empty line to the end of the file
 
 20. `^C` with big, complex commands might cause zombie processes to remain while running `rshell`
